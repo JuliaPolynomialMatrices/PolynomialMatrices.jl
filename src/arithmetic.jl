@@ -1,0 +1,76 @@
+function PMcheck(p1::PolyMatrix, p2::PolyMatrix)
+  @assert 1==1
+end
+
+function +{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N})
+  @assert p1.dims == p2.dims "incompatible sizes"
+  PMcheck(p1,p2)
+
+  # figure out return type
+  c1     = coeffs(p1)
+  c2     = coeffs(p2)
+  k1, v1 = first(c1)
+  k2, v2 = first(c2)
+  vr     = v1+v2
+  M      = typeof(vr)
+  r      = PolyMatrix( SortedDict{Int,M,O}(), p1.dims, p1.var)
+
+  cr  = coeffs(r)
+  sᵢ  = intersect(keys(c1),keys(c2))
+  s₁  = setdiff(keys(c1),sᵢ)
+  s₂  = setdiff(keys(c2),sᵢ)
+  for k in s₁
+    insert!(cr, k, c1[k])
+  end
+  for k in s₂
+    insert!(cr, k, c2[k])
+  end
+  for k in sᵢ
+    insert!(cr, k, c1[k]+ c2[k])
+  end
+  return r
+end
+
+function -{T,M,O,N}(p::PolyMatrix{T,M,O,N})
+  # figure out return type
+  r  = PolyMatrix( SortedDict{Int,M,O}(), p.dims, p.var)
+  for (k,v) in coeffs(p)
+    insert!(coeffs(r), k, -coeffs(p)[k])
+  end
+  return r
+end
+
+-{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}) = +(p1,-p2)
+
+function *{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N})
+  @assert p1.dims[end] == p2.dims[1] "incompatible sizes"
+  @assert p1.var == p2.var "multiplication of polynomial matrices with different variables not supported"
+  PMcheck(p1,p2)
+
+  # figure out return type
+  c1     = coeffs(p1)
+  c2     = coeffs(p2)
+  k1, v1 = first(c1)
+  k2, v2 = first(c2)
+  vr     = v1*v2
+  M      = typeof(vr)
+  r      = PolyMatrix( SortedDict{Int,M,O}(), p1.dims, p1.var)
+
+  # find all new powers k1+k2 and corresponding k1, k2
+  klist = Dict{Int,Vector{Tuple}}()
+  for k1 in keys(c1)
+    for k2 in keys(c2)
+      klist[k1+k2] = push!(get(klist,k1+k2, Array{Tuple,1}()), (k1,k2))
+    end
+  end
+
+  # do the calculations
+  for k in keys(klist)
+    vk = spzeros(r.dims...)
+    for v in klist[k]
+      vk += c1[v[1]]*c2[v[2]]
+    end
+    r.coeffs[k] = vk
+  end
+  return r
+end
