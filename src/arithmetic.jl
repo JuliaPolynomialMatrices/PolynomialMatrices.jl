@@ -54,7 +54,7 @@ function *{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}
   k2, v2 = first(c2)
   vr     = v1*v2
   M      = typeof(vr)
-  r      = PolyMatrix( SortedDict{Int,M,O}(), p1.dims, p1.var)
+  r      = PolyMatrix( SortedDict{Int,M,O}(), size(vr), p1.var)
 
   # find all new powers k1+k2 and corresponding k1, k2
   klist = Dict{Int,Vector{Tuple}}()
