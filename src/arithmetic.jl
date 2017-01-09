@@ -30,6 +30,8 @@ function +{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}
   end
   return r
 end
++(p1::PolyMatrix, p2::AbstractArray) = p1 + PolyMatrix(p2,p1.var)
++(p1::AbstractArray, p2::PolyMatrix) = PolyMatrix(p1,p2.var) + p2
 
 function -{T,M,O,N}(p::PolyMatrix{T,M,O,N})
   # figure out return type
@@ -39,8 +41,9 @@ function -{T,M,O,N}(p::PolyMatrix{T,M,O,N})
   end
   return r
 end
-
 -{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}) = +(p1,-p2)
+-(p1::PolyMatrix, p2::AbstractArray) = p1 - PolyMatrix(p2,p1.var)
+-(p1::AbstractArray, p2::PolyMatrix) = PolyMatrix(p1,p2.var) - p2
 
 function *{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N})
   @assert p1.dims[end] == p2.dims[1] "incompatible sizes"
@@ -74,3 +77,5 @@ function *{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}
   end
   return r
 end
+*(p1::PolyMatrix, p2::AbstractArray) = p1 * PolyMatrix(p2,p1.var)
+*(p1::AbstractArray, p2::PolyMatrix) = PolyMatrix(p1,p2.var) * p2
