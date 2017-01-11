@@ -39,7 +39,7 @@ function high_col_deg_matrix{T,M,O,N}(p::PolyMatrix{T,M,O,N})
   num_col = size(p,2)
 
   k   = fill(-1,1,num_col)
-  Phc = zeros(T,p.dims)
+  Phc = zeros(T,size(p))
   for i = max_deg:-1:0
     c = coeffs(p)[i]
     for j = 1:num_col
@@ -59,7 +59,7 @@ function high_row_deg_matrix{T,M,O,N}(p::PolyMatrix{T,M,O,N})
   num_row = size(p,1)
 
   k   = fill(-1,num_row,1)
-  Phr = zeros(p.dims)
+  Phr = zeros(size(p))
   for i = max_deg:-1:0
     c = coeffs(p)[i]
     for j = 1:num_row
@@ -134,7 +134,7 @@ function colred{T,M,O,N}(p::PolyMatrix{T,M,O,N})
     # Unimodular matrix Utemp
     Utemp = SortedDict(Dict{Int,AbstractMatrix{}}())
     insert!(Utemp, 0, eye(T,num_col))
-    for i = 1:max_temp-minimum(k[indN])
+    for i = 1:max_temp-minimum(k[indN[1:num_nz]])
       insert!(Utemp, i, zeros(T,num_col,num_col))
     end
 
@@ -280,7 +280,7 @@ function rowred{T,M,O,N}(p::PolyMatrix{T,M,O,N})
     # Unimodular matrix Utemp
     Utemp = SortedDict(Dict{Int,AbstractMatrix{}}())
     insert!(Utemp, 0, eye(T,num_row))
-    for i = 1:max_temp-minimum(k[indN])
+    for i = 1:max_temp-minimum(k[indN[1:num_nz]])
       insert!(Utemp, i, zeros(T,num_row,num_row))
     end
 
