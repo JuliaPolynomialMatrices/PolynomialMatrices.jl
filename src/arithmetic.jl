@@ -3,7 +3,7 @@ function PMcheck(p1::PolyMatrix, p2::PolyMatrix)
 end
 
 function +{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N})
-  @assert p1.dims == p2.dims "incompatible sizes"
+  p1.dims == p2.dims || error("incompatible sizes")
   PMcheck(p1,p2)
 
   # figure out return type
@@ -46,8 +46,9 @@ end
 -(p1::AbstractArray, p2::PolyMatrix) = PolyMatrix(p1,p2.var) - p2
 
 function *{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N})
-  @assert p1.dims[end] == p2.dims[1] "incompatible sizes"
-  @assert p1.var == p2.var "multiplication of polynomial matrices with different variables not supported"
+  p1.dims[end] == p2.dims[1] || error("incompatible sizes")
+  p1.var == p2.var ||
+    error("multiplication of polynomial matrices with different variables not supported")
   PMcheck(p1,p2)
 
   # figure out return type
