@@ -75,7 +75,7 @@ function _convert{T1,N,T2,M1,M2,O}(::Type{PolyMatrix{T1,M1,O,N}},
   p::PolyMatrix{T2,M2,O,N})
   r = PolyMatrix( SortedDict(Dict{Int,AbstractArray{T1,N}}()), size(p), p.var)
   for (k,c) in coeffs(p)
-    r.coeffs[k] = [convert(T1, x) for x in c]
+    r.coeffs[k] = map(x->convert(T1,x),c)
   end
   r
 end
