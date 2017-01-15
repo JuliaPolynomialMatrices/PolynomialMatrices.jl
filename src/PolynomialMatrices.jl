@@ -9,11 +9,12 @@ import Polynomials: coeffs, degree
 import Base: start, next, done
 import Base: promote_rule, convert, size, length
 import Base: +,-,*
-import Base: getindex
+import Base: getindex, setindex!, linearindexing, eltype
 import Base: copy
 import Base: transpose, ctranspose
 import Base: summary
 import Base: insert!
+import Base: checkbounds
 
 # Export
 export PolyMatrix

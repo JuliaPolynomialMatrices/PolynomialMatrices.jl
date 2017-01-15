@@ -18,7 +18,7 @@ Short description
 
 #### TODO's
 
-- [ ] Core PolynomialMatrix
+- [x] Core PolynomialMatrix
   - [x] basic PolynomialMatrix interface
   - [x] use SortedDict for internal representation
 - [ ] Math operations
@@ -26,14 +26,15 @@ Short description
   - [x] -
   - [x] *
   - [ ] /
-- [ ] Indexing:
+- [x] Indexing:
 	- [x] getindex
-	- [ ] setindex!
+	- [x] setindex!
   - [x] Iteration
-- [ ] Constructor
+- [x] Constructor
 	- [x] constructor from matrix of Polynomials.Poly
 	- [x] constructor form dict of AbstractMatrix
+  - [x] constructor from tall AbstractMatrix
 - [x] Functions
-	- [x]
 	- [x] transpose
+  - [x] ctranspose
 	- [x] matrix functions (inv, transpose, etc...) (could be more)

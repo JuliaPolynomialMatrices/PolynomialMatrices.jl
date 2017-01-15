@@ -14,17 +14,6 @@ immutable PolyMatrix{T,M,O,N} <: AbstractArray{Polynomials.Poly{T},N}
   dims::NTuple{N,Int}
   var::Symbol
 
-  @compat function (::Type{PolyMatrix}){T}(P::AbstractArray{Polynomials.Poly{T}})
-    ndims(P) ≤ 2 ||
-      error("PolyMatrix: higher order arrays not supported at this point")
-    maxdegree = maximum(map(degree, P))
-    var = countnz(P) > 0 ? P[findfirst(x -> x != zero(x), P)].var :
-                           variable(Polynomials.Poly{T}).var
-    M = typeof(similar(P, T)) # NOTE: Is there a more memory-efficient way to obtain M?
-    coeffs = SortedDict(Dict{Int,M}(i => convert(M,[p[i] for p in P]) for i in 0:maxdegree))
-    new{T,M,ordertype(coeffs),ndims(P)}(coeffs, size(P), var)
-  end
-
   @compat function (::Type{PolyMatrix}){M,O,N}(
       coeffs::SortedDict{Int,M,O}, dims::NTuple{N,Int}, var::Symbol=:x)
     T = eltype(M)
@@ -49,8 +38,38 @@ end
 end
 
 # Outer constructor
-function PolyMatrix{T,N}(A::AbstractArray{T}, dims::NTuple{N,Int}, var::Symbol=:x)
-  coeffs = SortedDict(Dict{Int,typeof(A)}())
+
+function PolyMatrix{M1<:AbstractArray}(PM::M1)
+  eltype(M1) <: Poly   || error("PolyMatrix: Matrix of Polynomials expected, try PolyMatrix(A, dims[, var])")
+  length(size(PM)) <= 2 || error("PolyMatrix: higher order arrays not supported at this point")
+  T = eltype(eltype(PM))
+  M = typeof(similar(PM, T)) # NOTE: Is there a more memory-efficient way to obtain M?
+  c = SortedDict(Dict{Int,M}())
+  # find the union of all index sets of all polynomials in the matrix PM
+  S = Set{Int}()
+  for p in PM
+    for elem in eachindex(coeffs(p))
+      push!(S, elem)
+    end
+  end
+  # initialize all elements to zero
+  for idx in S
+    insert!(c, idx-1, zeros(T, size(PM)...)) # TODO change to spzeros when Julia drops support for 0.4.7 (there are no sparse vectors)
+  end
+  # copy all elements
+  for pidx in eachindex(PM)
+    pc = coeffs(PM[pidx])
+    for eidx in eachindex(pc)
+      c[eidx-1][pidx] = pc[eidx]
+    end
+  end
+  var = countnz(PM) > 0 ? PM[findfirst(x -> x != zero(x), PM)].var :
+                         Poly(T[]).var       # default to Polys default variable
+  PolyMatrix(c, size(PM), var)
+end
+
+function PolyMatrix{M<:AbstractArray,N}(A::M, dims::NTuple{N,Int}, var::Symbol=:x)
+  coeffs = SortedDict(Dict{Int,M}())
   ny = dims[1]
   m = div(size(A,1), ny)
   for k = 0:m-1
@@ -59,6 +78,7 @@ function PolyMatrix{T,N}(A::AbstractArray{T}, dims::NTuple{N,Int}, var::Symbol=:
   end
   return PolyMatrix(coeffs,dims,var)
 end
+
 function PolyMatrix{T<:Number}(A::AbstractArray{T}, var::Symbol=:x)
   ndims(A) ≤ 2 ||
     error("PolyMatrix: higher order arrays not supported at this point")
@@ -100,10 +120,8 @@ length{T,M,O,N}(p::PolyMatrix{T,M,O,N})      = prod(size(p))
 start{T,M,O,N}(p::PolyMatrix{T,M,O,N})       = 1
 next{T,M,O,N}(p::PolyMatrix{T,M,O,N}, state) = p[state], state+1
 done{T,M,O,N}(p::PolyMatrix{T,M,O,N}, state) = state > length(p)
-Base.linearindexing{T,M,O,N}(::Type{PolyMatrix{T,M,O,N}}) = Base.LinearFast()
-#(p::PolyMatrix)       = start(coeffs(p))
-#next(p::PolyMatrix, state) = next(coeffs(p), state)
-#done(p::PolyMatrix, state) = done(coeffs(p), state)
+linearindexing{T<:PolyMatrix}(::Type{T})     = Base.LinearFast()
+eltype{T,M,O,N}(p::PolyMatrix{T,M,O,N})      = Poly{T}
 
 # Copying
 function copy{T,M}(p::PolyMatrix{T,M})
@@ -114,37 +132,46 @@ function copy{T,M}(p::PolyMatrix{T,M})
   return r
 end
 
-# Slicing (`getindex`)
-function getindex(p::PolyMatrix, row::Int, col::Int)
-  1 ≤ row ≤ size(p,1) || error("s[idx,]: idx out of bounds")
-  1 ≤ col ≤ size(p,2) || error("s[,idx]: idx out of bounds")
-  Poly([v[row, col] for (k,v) in p.coeffs],p.var)
-end
-
-function getindex{T,M,O,N}(p::PolyMatrix{T,M,O,N}, idx::Int)
-  1 ≤ idx ≤ length(p) || error("p[idx]: idx out of bounds")
-  Poly([v[idx] for (k,v) in p.coeffs],p.var)
-end
-
-getindex(p::PolyMatrix, ::Colon)           = p
-getindex(p::PolyMatrix, ::Colon, ::Colon)  = p
-
-function getindex{T,M,O,N}(p::PolyMatrix{T,M,O,N}, ::Colon, idx::Int)
-  1 ≤ idx ≤ length(p) || error("p[idx]: idx out of bounds")
-  r = PolyMatrix( SortedDict(Dict{Int,M}()), size(p), p.var)
-  for (k,v) in p.coeffs
-    r.coeffs[k] = reshape(v[:,idx], size(p,1), 1)
-  end
+# getindex
+function getindex{T,M,O,N}(p::PolyMatrix{T,M,O,N}, i::Int)
+  @compat @boundscheck checkbounds(p, i)
+  r = Poly([v[i] for (k,v) in p.coeffs],p.var)
   return r
 end
 
-function getindex{T,M,O,N}(p::PolyMatrix{T,M,O,N}, idx::Int, ::Colon)
-  1 ≤ idx ≤ length(p) || error("p[idx]: idx out of bounds")
-  r = PolyMatrix( SortedDict(Dict{Int,M}()), size(p), p.var)
-  for (k,v) in p.coeffs
-    r.coeffs[k] = reshape(v[idx,:], 1, size(p,2))
+_PolyMatrix{T,N}(p::Array{Poly{T},N}) = PolyMatrix(p)
+_PolyMatrix{T}(p::Poly{T})            = p
+
+# Hacking AbstractArrays getindex to make sure we return PolyMatrix for non-scalar return types
+function getindex(A::PolyMatrix, I...)
+    r = Base._getindex(linearindexing(A), A, I...)
+    _PolyMatrix(r)
+end
+
+# setindex!
+function setindex!{T,M,O,N,U}(Pm::PolyMatrix{T,M,O,N}, p::Poly{U}, i::Int)
+  @compat @boundscheck checkbounds(Pm, i)
+  c = coeffs(p)
+  Pmc = coeffs(Pm)
+  S = Set(eachindex(coeffs(p)))
+  for (k, v) in Pmc
+    if k+1 ∈ S
+      v[i] = c[k+1]
+      delete!(S,k+1)
+    else
+      v[i] = zero(T)
+    end
+    # NOTE should we delete a key if all elements are made zero?
+    # if all(v .== zero(T))
+    #   delete!(Pmc, idx-1)
+    # end
   end
-  return r
+  # add keys not previously present in Pm
+  for k in S
+    vk = spzeros(T, Pm.dims...)
+    vk[i] = c[k]
+    insert!(Pmc, k-1, vk)
+  end
 end
 
 function insert!{T,M,O,N}(p::PolyMatrix{T,M,O,N}, k::Int, A)
@@ -158,14 +185,7 @@ coeffs(p::PolyMatrix) = p.coeffs
 degree{T,M,O,N}(p::PolyMatrix{T,M,O,N})  = last(coeffs(p))[1]
 
 function transpose{T,M<:AbstractMatrix,O,N}(p::PolyMatrix{T,M,O,N})
-  r = PolyMatrix( SortedDict(Dict{Int,M}()), (p.dims[2], p.dims[1]), p.var)
-  for (k,v) in p.coeffs
-    r.coeffs[k] = v.'
-  end
-  return r
-end
-function transpose{T,M,O}(p::PolyMatrix{T,M,O,1})
-  r = PolyMatrix( SortedDict(Dict{Int,AbstractArray{T,2}}()), (1,p.dims[1]), p.var)
+  r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), p.var)
   for (k,v) in p.coeffs
     r.coeffs[k] = v.'
   end
@@ -173,23 +193,12 @@ function transpose{T,M,O}(p::PolyMatrix{T,M,O,1})
 end
 
 function ctranspose{T,M,O,N}(p::PolyMatrix{T,M,O,N})
-  r = PolyMatrix( SortedDict(Dict{Int,M}()), (p.dims[2], p.dims[1]), p.var)
+  r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), p.var)
   for (k,v) in p.coeffs
     r.coeffs[k] = v'
   end
   return r
 end
-function ctranspose{T,M,O}(p::PolyMatrix{T,M,O,1})
-  r = PolyMatrix( SortedDict(Dict{Int,AbstractArray{T,2}}()), (1,p.dims[1]), p.var)
-  for (k,v) in p.coeffs
-    r.coeffs[k] = v'
-  end
-  return r
-end
-
-# NOTE: It would be nicer if "; " were replaced by linebreaks
-# the "Poly" word were removed, and the entries of each row were
-# right justified (as when Julia prints e.g. "[1 100; 100 0]")
 
 summary{T,M,O,N}(p::PolyMatrix{T,M,O,N}) =
- string(Base.dims2string(size(p)), " PolyMatrix{$T}")
+  string(Base.dims2string(p.dims), " PolyArray{$T,$N}")
