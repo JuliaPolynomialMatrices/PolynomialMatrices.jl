@@ -15,6 +15,8 @@ import Base: transpose, ctranspose
 import Base: summary
 import Base: insert!
 import Base: checkbounds
+import Base: filt!, filt
+import Compat.view
 
 # Export
 export PolyMatrix
@@ -27,5 +29,6 @@ export colred, rowred
 include("polymatrix.jl")
 include("arithmetic.jl")
 include("reductions.jl")
+include("filt.jl")
 
 end # module

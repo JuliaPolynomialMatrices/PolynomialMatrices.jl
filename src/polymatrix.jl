@@ -38,7 +38,6 @@ end
 end
 
 # Outer constructor
-
 function PolyMatrix{M1<:AbstractArray}(PM::M1)
   eltype(M1) <: Poly   || error("PolyMatrix: Matrix of Polynomials expected, try PolyMatrix(A, dims[, var])")
   length(size(PM)) <= 2 || error("PolyMatrix: higher order arrays not supported at this point")
@@ -69,22 +68,28 @@ function PolyMatrix{M1<:AbstractArray}(PM::M1)
 end
 
 function PolyMatrix{M<:AbstractArray,N}(A::M, dims::NTuple{N,Int}, var::Symbol=:x)
-  coeffs = SortedDict(Dict{Int,M}())
+  c  = SortedDict(Dict{Int,M}())
   ny = dims[1]
-  m = div(size(A,1), ny)
-  for k = 0:m-1
-    p = view(A, k*ny+(1:ny),:)
-    insert!(coeffs, k, p)
+  m  = div(size(A,1), ny)
+  if size(A,1) != m*ny || size(A,2) != dims[2]
+    warn("PolyMatrix: dimensions are not consistent")
+    throw(DomainError())
   end
-  return PolyMatrix(coeffs,dims,var)
+  for k = 0:m-1
+    p = view(A, k*ny+(1:ny), :)
+    insert!(c, k, p)
+  end
+  return PolyMatrix(c, dims, var)
 end
 
 function PolyMatrix{T<:Number}(A::AbstractArray{T}, var::Symbol=:x)
-  ndims(A) ≤ 2 ||
-    error("PolyMatrix: higher order arrays not supported at this point")
-  coeffs = SortedDict(Dict{Int,typeof(A)}())
-  insert!(coeffs, 0, A)
-  return PolyMatrix(coeffs,size(A),var)
+  if ndims(A) > 2
+    warn("PolyMatrix: higher order arrays not supported at this point")
+    throw(DomainError())
+  end
+  c = SortedDict(Dict{Int,typeof(A)}())
+  insert!(c, 0, A)
+  return PolyMatrix(c, size(A), var)
 end
 
 promote_rule{T1,T2,M2,O,N}(::Type{PolyMatrix{T1,Array{T1,N},O,N}},
