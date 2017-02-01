@@ -192,7 +192,7 @@ degree{T,M,O,N}(p::PolyMatrix{T,M,O,N})  = last(coeffs(p))[1]
 function transpose{T,M<:AbstractMatrix,O,N}(p::PolyMatrix{T,M,O,N})
   r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), p.var)
   for (k,v) in p.coeffs
-    r.coeffs[k] = v.'
+    r.coeffs[k] = transpose(v)
   end
   return r
 end
@@ -200,7 +200,7 @@ end
 function ctranspose{T,M,O,N}(p::PolyMatrix{T,M,O,N})
   r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), p.var)
   for (k,v) in p.coeffs
-    r.coeffs[k] = v'
+    r.coeffs[k] = ctranspose(v)
   end
   return r
 end

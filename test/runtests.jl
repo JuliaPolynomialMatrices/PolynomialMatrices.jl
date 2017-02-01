@@ -60,12 +60,12 @@ pm4[4] = p2
 
 # test transpose and ctranspose
 pm4[2] = p3
-pm5 = pm4.'
+pm5 = transpose(pm4)
 @test coeffs(pm4[2]) ≈ coeffs(pm5[3])
 
 C   = randn(2,2) + randn(2,2)im
 pm6 = PolyMatrix(C)
-@test coeffs(pm6')[0] ≈ C'
+@test coeffs(ctranspose(pm6))[0] ≈ ctranspose(C)
 
 # test filtering
 N = 100
