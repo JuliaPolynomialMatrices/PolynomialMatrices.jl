@@ -64,7 +64,7 @@ function *{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}
   klist = Dict{Int,Vector{Tuple}}()
   for k1 in keys(c1)
     for k2 in keys(c2)
-      klist[k1+k2] = push!(get(klist,k1+k2, Array{Tuple,1}()), (k1,k2))
+      klist[k1+k2] = push!(get(klist,k1+k2, Vector{Tuple}()), tuple(k1,k2))
     end
   end
 
