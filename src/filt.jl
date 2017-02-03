@@ -92,7 +92,7 @@ function _filt_fir!{T,M1,O,N}(
   end
 end
 
-function _filt_ar!{T,S,M1,O,N}(
+function _filt_ar!{T,M1,O,N}(
   out::AbstractMatrix{T}, a::PolyMatrix{T,M1,O,N},
   x::AbstractArray{T}, si=zeros(T, size(a,1), degree(a)))
   silen = size(si,2)
