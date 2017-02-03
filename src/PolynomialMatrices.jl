@@ -26,7 +26,9 @@ export is_col_proper, is_row_proper
 export colred, rowred
 
 # Include files
-include("polymatrix.jl")
+include("type.jl")
+include("methods.jl")
+include("conversions.jl")
 include("arithmetic.jl")
 include("reductions.jl")
 include("filt.jl")
