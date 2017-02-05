@@ -1,6 +1,3 @@
-ordertype{K,D,O}(::Type{SortedDict{K,D,O}}) = O
-ordertype{K,D,O}(s::SortedDict{K,D,O}) = O
-
 # Parameters:
 #   T: type of the polynomials' coefficients
 #   M: type of the matrices of coefficients
