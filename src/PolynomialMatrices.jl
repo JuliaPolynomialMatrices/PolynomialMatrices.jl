@@ -17,6 +17,7 @@ import Base: insert!
 import Base: checkbounds
 import Base: filt!, filt
 import Compat.view
+import Base: vecnorm, norm, isapprox, ==, isequal, hash
 
 # Export
 export PolyMatrix

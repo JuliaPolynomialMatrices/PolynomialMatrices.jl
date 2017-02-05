@@ -66,10 +66,10 @@ function insert!{T,M,O,N}(p::PolyMatrix{T,M,O,N}, k::Int, A)
   insert!(coeffs(p), k, A)
 end
 
-# Obtain dictionary of coefficient matrices
+## Obtain dictionary of coefficient matrices
 coeffs(p::PolyMatrix) = p.coeffs
 
-# Maximum degree of the polynomials in a polynomial matrix
+## Maximum degree of the polynomials in a polynomial matrix
 degree{T,M,O,N}(p::PolyMatrix{T,M,O,N})  = last(coeffs(p))[1]
 
 function transpose{T,M<:AbstractMatrix,O,N}(p::PolyMatrix{T,M,O,N})
@@ -88,37 +88,83 @@ function ctranspose{T,M,O,N}(p::PolyMatrix{T,M,O,N})
   return r
 end
 
-"""
-    isapprox{T,S}(p1::Poly{T}, p2::Poly{S}; reltol::Real = Base.rtoldefault(T,S), abstol::Real = 0, norm::Function = vecnorm)
-Truncate `p1` and `p2`, and compare the coefficients with `isapprox`.
-The tolerances `reltol` and `abstol` are passed to both `truncate` and `isapprox`.
-"""
-function isapprox{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N};
-  rtol::Real = Base.rtoldefault(T1,T2), atol::Real = 0, norm::Function = vecnorm)
-  p1.var == p2.var || throw(DomainError())
-  p1t = truncate(p1; rtol=rtol, atol=atol)
-  p2t = truncate(p2; rtol=rtol, atol=atol)
-  c1 = coeffs(p1t)
-  c2 = coeffs(p2t)
-  length(c1) == length(p2) || throw(DomainError())
-  for ((k1,v1), (k2,v2)) in zip(c1,c2)
-    k1 == k2                                          || return false
-    isapprox(v1, v2; rtol=rtol, atol=atol, norm=norm) || return false
+# TODO is there a definition for matrix norms for polynomial matrices?
+# TODO Lₚ norms
+# vecnorm
+# stacks all coefficient matrices and calls built in vecnorm on resulting tall matrix
+function vecnorm{T1,M1,O,N}(p1::PolyMatrix{T1,M1,O,N}, p::Real=2)
+  c = coeffs(p1)
+  vecnorm(vcat(values(c)...), p)
+end
+
+## Comparison
+=={T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}) = (p1.var == p2.var && p1.coeffs == p2.coeffs)
+==(p1::PolyMatrix, p2::PolyMatrix) = false
+
+function =={T1,M1,O,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,O,N}, n::M2)
+  c = coeffs(p1)
+  has_zero = false
+  for (k,v) in c
+    if k == 0
+      v == n || return false
+      has_zero = true
+    else
+      v == zeros(v) || return false
+    end
   end
-  return true
+  return ifelse(has_zero, true, n == zeros(n))
 end
-
-function isapprox{T,M,O,N,S<:Array}(p1::PolyMatrix{T,M,O,N}, n::S; reltol::Real = Base.rtoldefault(T,S),
-  abstol::Real = 0)
-  p1t = truncate(p1; reltol = reltol, abstol = abstol)
-  degree(p1t) == 0 && isapprox(coeffs(p1), [n]; rtol = reltol, atol = abstol)
-end
-
-isapprox{T,M,O,N,S<:Number}(n::S, p1::PolyMatrix{T,M,O,N}; reltol::Real = Base.rtoldefault(T,S),
-  abstol::Real = 0) = isapprox(p1, n; reltol = reltol, abstol = abstol)
+=={T1,M1,O,N,M2<:AbstractArray}(n::M2, p1::PolyMatrix{T1,M1,O,N}) = (p1 == n)
 
 hash(p::PolyMatrix, h::UInt) = hash(p.var, hash(coeffs(p), h))
 isequal(p1::PolyMatrix, p2::PolyMatrix) = hash(p1) == hash(p2)
+
+function isapprox{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N};
+  rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0, norm::Function=vecnorm)
+  p1.var == p2.var || throw(DomainError())
+  d = norm(p1 - p2)
+  if isfinite(d)
+    return d <= atol + rtol*max(norm(p1), norm(p2))
+  else
+    c1 = coeffs(p1)
+    c2 = coeffs(p2)
+    sᵢ = intersect(keys(c1),keys(c2))
+    s₁ = setdiff(keys(c1),sᵢ)
+    s₂ = setdiff(keys(c2),sᵢ)
+    for k in s₁
+      isapprox(c1[k], zeros(c1[k]); rtol=rtol, atol=atol) || return false
+    end
+    for k in s₂
+      isapprox(c2[k], zeros(c2[k]); rtol=rtol, atol=atol) || return false
+    end
+    for k in sᵢ
+      isapprox(c1[k], c2[k]; rtol=rtol, atol=atol)        || return false
+    end
+    return true
+  end
+end
+
+function isapprox{T1,M1,O,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,O,N}, n::M2;
+  rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0, norm::Function=vecnorm)
+  p1.var == p2.var || throw(DomainError())
+  d = norm(p1 - n)
+  if isfinite(d)
+    return d <= atol + rtol*max(norm(p1), norm(n))
+  else
+    c = coeffs(p1)
+    has_zero = false
+    for (k,v) in c
+      if k == 0
+        isapprox(v, n; rtol=rtol, atol=atol) || return false
+        has_zero = true
+      else
+        isapprox(v, zeros(v); rtol=rtol, atol=atol) || return false
+      end
+    end
+    return ifelse(has_zero, true, isapprox(n,zeros(n)))
+  end
+end
+isapprox{T1,M1,O,N,M2<:AbstractArray}(n::M2, p1::PolyMatrix{T1,M1,O,N}) = (p1 == n)
 
 summary{T,M,O,N}(p::PolyMatrix{T,M,O,N}) =
   string(Base.dims2string(p.dims), " PolyArray{$T,$N}")
