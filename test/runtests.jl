@@ -41,9 +41,11 @@ pm5 = PolyMatrix([p5 p2; p2 p4])
 @test !isapprox(pm3,pm4; rtol=0.001)
 @test isapprox(pm3,pm4; rtol=0.1)
 
+!isapprox(pm3,pm4; rtol=0.001)
+
 B = [2 2; 2 2]
 C = [1 1; 1 1]
-PolyB = PolyMatrix(B, (2,2))
+PolyB = PolyMatrix(B, (2,2), :s)
 @test B == PolyB
 @test C != PolyB
 @test pm2 == copy(pm2)
@@ -70,9 +72,9 @@ pm2 = copy(pm1)
 @test isequal(pm1, pm2) && !is(pm1, pm2)
 
 # test getindex
-p1  = Poly([1])
-p2  = Poly([2,1,3])
-p3  = Poly([2,3,4])
+p1  = Poly([1],:s)
+p2  = Poly([2,1,3],:s)
+p3  = Poly([2,3,4],:s)
 m   = [p1 p2; p2 p1]
 pm1 = PolyMatrix(m)
 degreepm2 = 8
@@ -87,10 +89,10 @@ pm3 = PolyMatrix(B)
 t = pm1[1:2,2]
 @test coeffs(t[1]) ≈ coeffs(p2)
 @test coeffs(t[2]) ≈ coeffs(p1)
-@test typeof(pm1[1:2,2]) == PolyMatrix{Int,Vector{Int},Base.Order.ForwardOrdering,1}
+@test typeof(pm1[1:2,2]) == PolyMatrix{Int,Vector{Int},Var{:s},1}
 
 t = pm1[1:2,2:2]
-@test typeof(t) == PolyMatrix{Int,Matrix{Int},Base.Order.ForwardOrdering,2}
+@test typeof(t) == PolyMatrix{Int,Matrix{Int},Var{:s},2}
 
 # test setindex!
 @test_throws InexactError pm1[1] = Poly([1.5])

@@ -2,7 +2,7 @@ function PMcheck(p1::PolyMatrix, p2::PolyMatrix)
   @assert 1==1
 end
 
-function +{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N})
+function +{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatrix{T2,M2,Var{V},N})
   size(p1) == size(p2) || error("incompatible sizes")
   PMcheck(p1,p2)
 
@@ -13,7 +13,7 @@ function +{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}
   k2, v2 = first(c2)
   vr     = v1+v2
   M      = typeof(vr)
-  r      = PolyMatrix( SortedDict{Int,M,O}(), size(p1), p1.var)
+  r      = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p1), V)
 
   cr  = coeffs(r)
   sᵢ  = intersect(keys(c1),keys(c2))
@@ -30,25 +30,35 @@ function +{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}
   end
   return r
 end
-+(p1::PolyMatrix, p2::AbstractArray) = p1 + PolyMatrix(p2,p1.var)
-+(p1::AbstractArray, p2::PolyMatrix) = PolyMatrix(p1,p2.var) + p2
 
-function -{T,M,O,N}(p::PolyMatrix{T,M,O,N})
+function +{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V1},N}, p2::PolyMatrix{T2,M2,Var{V2},N})
+  warn("p1≈p2: `p1` ($T1,$V1) and `p2` ($T2,$V2) have different variables")
+  throw(DomainError())
+end
+
++{T,M,V,N}(p1::PolyMatrix{T,M,Var{V},N}, p2::AbstractArray) = p1 + PolyMatrix(p2, V)
++{T,M,V,N}(p1::AbstractArray, p2::PolyMatrix{T,M,Var{V},N}) = PolyMatrix(p1, V) + p2
+
+function -{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})
   # figure out return type
-  r  = PolyMatrix( SortedDict{Int,M,O}(), size(p), p.var)
+  r  = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p), V)
   for (k,v) in coeffs(p)
     insert!(coeffs(r), k, -coeffs(p)[k])
   end
   return r
 end
--{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}) = +(p1,-p2)
--(p1::PolyMatrix, p2::AbstractArray) = p1 - PolyMatrix(p2,p1.var)
--(p1::AbstractArray, p2::PolyMatrix) = PolyMatrix(p1,p2.var) - p2
 
-function *{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N})
+-{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatrix{T2,M2,Var{V},N}) = +(p1,-p2)
+function -{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V1},N}, p2::PolyMatrix{T2,M2,Var{V2},N})
+  warn("p1≈p2: `p1` ($T1,$V1) and `p2` ($T2,$V2) have different variables")
+  throw(DomainError())
+end
+
+-{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::AbstractArray) = p1 - PolyMatrix(p2, V)
+-{T1,M1,V,N}(p1::AbstractArray, p2::PolyMatrix{T1,M1,Var{V},N}) = PolyMatrix(p1, V) - p2
+
+function *{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatrix{T2,M2,Var{V},N})
   size(p1,2) == size(p2,1) || error("incompatible sizes")
-  p1.var == p2.var ||
-    error("multiplication of polynomial matrices with different variables not supported")
   PMcheck(p1,p2)
 
   # figure out return type
@@ -58,7 +68,7 @@ function *{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}
   k2, v2 = first(c2)
   vr     = v1*v2
   M      = typeof(vr)
-  r      = PolyMatrix( SortedDict{Int,M,O}(), size(vr), p1.var)
+  r      = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(vr), V)
 
   # find all new powers k1+k2 and corresponding k1, k2
   klist = Dict{Int,Vector{Tuple}}()
@@ -78,5 +88,11 @@ function *{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}
   end
   return r
 end
-*(p1::PolyMatrix, p2::AbstractArray) = p1 * PolyMatrix(p2,p1.var)
-*(p1::AbstractArray, p2::PolyMatrix) = PolyMatrix(p1,p2.var) * p2
+
+function *{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V1},N}, p2::PolyMatrix{T2,M2,Var{V2},N})
+  warn("p1≈p2: `p1` ($T1,$V1) and `p2` ($T2,$V2) have different variables")
+  throw(DomainError())
+end
+
+*{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::AbstractArray) = p1 * PolyMatrix(p2, V)
+*{T1,M1,V,N}(p1::AbstractArray, p2::PolyMatrix{T1,M1,Var{V},N}) = PolyMatrix(p1, V) * p2

@@ -12,8 +12,8 @@ linearindexing{T<:PolyMatrix}(::Type{T})     = Base.LinearFast()
 eltype{T,M,O,N}(p::PolyMatrix{T,M,O,N})      = Poly{T}
 
 # Copying
-function copy{T,M}(p::PolyMatrix{T,M})
-  r = PolyMatrix( SortedDict(Dict{Int,M}()), size(p), p.var)
+function copy{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})
+  r = PolyMatrix( SortedDict(Dict{Int,M}()), size(p), V)
   for (k,v) in coeffs(p)
     r.coeffs[k] = copy(v)
   end
@@ -21,9 +21,9 @@ function copy{T,M}(p::PolyMatrix{T,M})
 end
 
 # getindex
-function getindex{T,M,O,N}(p::PolyMatrix{T,M,O,N}, i::Int)
+function getindex{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N}, i::Int)
   @compat @boundscheck checkbounds(p, i)
-  r = Poly([v[i] for (k,v) in p.coeffs],p.var)
+  r = Poly([v[i] for (k,v) in p.coeffs],V)
   return r
 end
 
@@ -37,7 +37,7 @@ function getindex(A::PolyMatrix, I...)
 end
 
 # setindex!
-function setindex!{T,M,O,N,U}(Pm::PolyMatrix{T,M,O,N}, p::Poly{U}, i::Int)
+function setindex!{T,M,V,N,U}(Pm::PolyMatrix{T,M,Var{V},N}, p::Poly{U}, i::Int)
   @compat @boundscheck checkbounds(Pm, i)
   c = coeffs(p)
   Pmc = coeffs(Pm)
@@ -62,7 +62,7 @@ function setindex!{T,M,O,N,U}(Pm::PolyMatrix{T,M,O,N}, p::Poly{U}, i::Int)
   end
 end
 
-function insert!{T,M,O,N}(p::PolyMatrix{T,M,O,N}, k::Int, A)
+function insert!{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N}, k::Int, A)
   insert!(coeffs(p), k, A)
 end
 
@@ -70,18 +70,18 @@ end
 coeffs(p::PolyMatrix) = p.coeffs
 
 ## Maximum degree of the polynomials in a polynomial matrix
-degree{T,M,O,N}(p::PolyMatrix{T,M,O,N})  = last(coeffs(p))[1]
+degree{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})  = last(coeffs(p))[1]
 
-function transpose{T,M<:AbstractMatrix,O,N}(p::PolyMatrix{T,M,O,N})
-  r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), p.var)
+function transpose{T,M<:AbstractMatrix,V,N}(p::PolyMatrix{T,M,Var{V},N})
+  r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), V)
   for (k,v) in p.coeffs
     r.coeffs[k] = transpose(v)
   end
   return r
 end
 
-function ctranspose{T,M,O,N}(p::PolyMatrix{T,M,O,N})
-  r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), p.var)
+function ctranspose{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})
+  r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), V)
   for (k,v) in p.coeffs
     r.coeffs[k] = ctranspose(v)
   end
@@ -92,16 +92,16 @@ end
 # TODO Lₚ norms
 # vecnorm
 # stacks all coefficient matrices and calls built in vecnorm on resulting tall matrix
-function vecnorm{T1,M1,O,N}(p1::PolyMatrix{T1,M1,O,N}, p::Real=2)
+function vecnorm{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Var{V},N}, p::Real=2)
   c = coeffs(p1)
   vecnorm(vcat(values(c)...), p)
 end
 
 ## Comparison
-=={T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N}) = (p1.var == p2.var && p1.coeffs == p2.coeffs)
-==(p1::PolyMatrix, p2::PolyMatrix) = false
+=={T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatrix{T2,M2,Var{V},N}) = (p1.coeffs == p2.coeffs)
+=={T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V1},N}, p2::PolyMatrix{T2,M2,Var{V2},N}) = false
 
-function =={T1,M1,O,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,O,N}, n::M2)
+function =={T1,M1,V,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,Var{V},N}, n::M2)
   c = coeffs(p1)
   has_zero = false
   for (k,v) in c
@@ -114,14 +114,13 @@ function =={T1,M1,O,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,O,N}, n::M2)
   end
   return ifelse(has_zero, true, n == zeros(n))
 end
-=={T1,M1,O,N,M2<:AbstractArray}(n::M2, p1::PolyMatrix{T1,M1,O,N}) = (p1 == n)
+=={T1,M1,V,N,M2<:AbstractArray}(n::M2, p1::PolyMatrix{T1,M1,Var{V},N}) = (p1 == n)
 
-hash(p::PolyMatrix, h::UInt) = hash(p.var, hash(coeffs(p), h))
+hash{T1,M1,V,N}(p::PolyMatrix{T1,M1,Var{V},N}, h::UInt) = hash(V, hash(coeffs(p), h))
 isequal(p1::PolyMatrix, p2::PolyMatrix) = hash(p1) == hash(p2)
 
-function isapprox{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,M2,O,N};
+function isapprox{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatrix{T2,M2,Var{V},N};
   rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0, norm::Function=vecnorm)
-  p1.var == p2.var || throw(DomainError())
   d = norm(p1 - p2)
   if isfinite(d)
     return d <= atol + rtol*max(norm(p1), norm(p2))
@@ -143,10 +142,15 @@ function isapprox{T1,M1,O,N,T2,M2}(p1::PolyMatrix{T1,M1,O,N}, p2::PolyMatrix{T2,
     return true
   end
 end
-
-function isapprox{T1,M1,O,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,O,N}, n::M2;
+function isapprox{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V1},N}, p2::PolyMatrix{T2,M2,Var{V2},N};
   rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0, norm::Function=vecnorm)
-  p1.var == p2.var || throw(DomainError())
+  warn("p1≈p2: `p1` ($T1,$V1) and `p2` ($T2,$V2) have different variables")
+  throw(DomainError())
+end
+
+
+function isapprox{T1,M1,V,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,Var{V},N}, n::M2;
+  rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0, norm::Function=vecnorm)
   d = norm(p1 - n)
   if isfinite(d)
     return d <= atol + rtol*max(norm(p1), norm(n))
@@ -164,7 +168,7 @@ function isapprox{T1,M1,O,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,O,N}, n::M2;
     return ifelse(has_zero, true, isapprox(n,zeros(n)))
   end
 end
-isapprox{T1,M1,O,N,M2<:AbstractArray}(n::M2, p1::PolyMatrix{T1,M1,O,N}) = (p1 == n)
+isapprox{T1,M1,V,N,M2<:AbstractArray}(n::M2, p1::PolyMatrix{T1,M1,Var{V},N}) = (p1 == n)
 
-summary{T,M,O,N}(p::PolyMatrix{T,M,O,N}) =
+summary{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N}) =
   string(Base.dims2string(p.dims), " PolyArray{$T,$N}")

@@ -1,3 +1,9 @@
+"""
+Value type for encoding the variable used in constructing `PolyMatrix`s.
+"""
+immutable Var{T}
+end
+
 # Parameters:
 #   T: type of the polynomials' coefficients
 #   M: type of the matrices of coefficients
@@ -6,20 +12,19 @@
 #
 # NOTE: The constructors should make sure that the highest coefficient matrix is nonzero
 # NOTE: For dense polynomial matrices, defining `coeffs` as a 3-D array could be much more efficient
-immutable PolyMatrix{T,M,O,N} <: AbstractArray{Polynomials.Poly{T},N}
-  coeffs::SortedDict{Int,M,O}
+immutable PolyMatrix{T,M,V,N} <: AbstractArray{Polynomials.Poly{T},N}
+  coeffs::SortedDict{Int,M,ForwardOrdering}
   dims::NTuple{N,Int}
-  var::Symbol
 
-  @compat function (::Type{PolyMatrix}){M,O,N}(
-      coeffs::SortedDict{Int,M,O}, dims::NTuple{N,Int}, var::Symbol=:x)
+  @compat function (::Type{PolyMatrix}){M,N}(
+      coeffs::SortedDict{Int,M,ForwardOrdering}, dims::NTuple{N,Int}, var::Symbol=:x)
     T = eltype(M)
-    new{T,M,O,N}(coeffs, dims, var)
+    new{T,M,Var{var},N}(coeffs, dims)
   end
 end
 
 # Evaluation of a polynomial matrix at a specific value x
-@compat function (p::PolyMatrix{T,M,O,N}){T,M,O,N,S}(x::S)
+@compat function (p::PolyMatrix{T,M,V,N}){T,M,V,N,S}(x::S)
   degree(p) == 0 && return convert(M, zeros(T,size(p)...))*zero(S)
 
   c    = p.coeffs
@@ -64,7 +69,7 @@ function PolyMatrix{M1<:AbstractArray}(PM::M1)
   PolyMatrix(c, size(PM), var)
 end
 
-function PolyMatrix{M<:AbstractArray,N}(A::M, dims::NTuple{N,Int}, var::Symbol=:x)
+function PolyMatrix{M<:AbstractArray,N}(A::M, dims::NTuple{N,Int}, var::SymbolLike=:x)
   c  = SortedDict(Dict{Int,M}())
   ny = dims[1]
   m  = div(size(A,1), ny)
@@ -76,15 +81,15 @@ function PolyMatrix{M<:AbstractArray,N}(A::M, dims::NTuple{N,Int}, var::Symbol=:
     p = view(A, k*ny+(1:ny), :)
     insert!(c, k, p)
   end
-  return PolyMatrix(c, dims, var)
+  return PolyMatrix(c, dims, @compat Symbol(var))
 end
 
-function PolyMatrix{T<:Number}(A::AbstractArray{T}, var::Symbol=:x)
+function PolyMatrix{T<:Number}(A::AbstractArray{T}, var::SymbolLike=:x)
   if ndims(A) > 2
     warn("PolyMatrix: higher order arrays not supported at this point")
     throw(DomainError())
   end
   c = SortedDict(Dict{Int,typeof(A)}())
   insert!(c, 0, A)
-  return PolyMatrix(c, size(A), var)
+  return PolyMatrix(c, size(A), @compat Symbol(var))
 end

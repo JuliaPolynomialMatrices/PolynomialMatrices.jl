@@ -26,6 +26,9 @@ export high_col_deg_matrix, high_row_deg_matrix
 export is_col_proper, is_row_proper
 export colred, rowred
 
+typealias SymbolLike  Union{Symbol,AbstractString,Char}
+typealias ForwardOrdering Base.Order.ForwardOrdering
+
 # Include files
 include("type.jl")
 include("methods.jl")
