@@ -24,7 +24,63 @@ B   = eye(Float64,2)
 pm2 = PolyMatrix(A, (ny,nu))
 pm3 = PolyMatrix(B)
 
+# test equality and isapprox
+p1  = Poly([2,1,3.], :s)
+p2  = Poly([2,1,3.1], :s)
+p3  = Poly([Inf,1,3.1], :s)
+p4  = Poly([Inf,1.,3], :s)
+p5  = Poly([NaN64,1.,3], :s)
+pm1 = PolyMatrix([p1 p2; p2 p1])
+pm2 = PolyMatrix([p1 p2; p2 p2])
+pm3 = PolyMatrix([p3 p2; p2 p3])
+pm4 = PolyMatrix([p4 p2; p2 p4])
+pm5 = PolyMatrix([p5 p2; p2 p4])
+
+@test pm1 != pm2 != pm3 != pm4 != pm5
+
+@test !isapprox(pm3,pm4; rtol=0.001)
+@test isapprox(pm3,pm4; rtol=0.1)
+
+B = [2 2; 2 2]
+C = [1 1; 1 1]
+PolyB = PolyMatrix(B, (2,2))
+@test B == PolyB
+@test C != PolyB
+@test pm2 == copy(pm2)
+@test pm1 != pm2
+@test pm1 != PolyB
+
+# different variables
+B = [0. 1; 1 1]
+C = [-0. 1; 1 1]
+PolyB = PolyMatrix(B, (2,2), :s)
+PolyC = PolyMatrix(B, (2,2), :q)
+PolyD = PolyMatrix(C, (2,2), :s)
+
+@test PolyB ≠ PolyC && !isequal(PolyB, PolyC)
+@test_throws DomainError PolyB ≈ PolyC
+@test PolyB == PolyD && PolyB ≈ PolyD && !isequal(PolyB, PolyD)
+
+# test copy
+p1  = Poly([1])
+p2  = Poly([2,1,3])
+pm1 = PolyMatrix([p1 p2; p2 p1])
+pm2 = copy(pm1)
+
+@test isequal(pm1, pm2) && !is(pm1, pm2)
+
 # test getindex
+p1  = Poly([1])
+p2  = Poly([2,1,3])
+p3  = Poly([2,3,4])
+m   = [p1 p2; p2 p1]
+pm1 = PolyMatrix(m)
+degreepm2 = 8
+A   = randn(ny*(degreepm2+1),nu)
+B   = eye(Float64,2)
+
+pm2 = PolyMatrix(A, (ny,nu))
+pm3 = PolyMatrix(B)
 @test pm1[1].a ≈ p1.a
 @test typeof(pm1[1]) == Poly{Int}
 
@@ -51,12 +107,6 @@ for idx in eachindex(pm3)
 end
 
 @test coeffs(pm3[end]) ≈ coeffs(one(Poly{Float64}))
-
-# test copy
-pm4 = copy(pm1)
-pm4[4] = p2
-@test coeffs(pm4[1]) ≈ coeffs(pm1[1])
-@test !(coeffs(pm1[4])[1] ≈ coeffs(p2)[1])
 
 # test transpose and ctranspose
 pm4[2] = p3

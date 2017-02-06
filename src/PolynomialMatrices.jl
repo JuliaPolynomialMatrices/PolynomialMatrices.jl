@@ -17,6 +17,7 @@ import Base: insert!
 import Base: checkbounds
 import Base: filt!, filt
 import Compat.view
+import Base: vecnorm, norm, isapprox, ==, isequal, hash
 
 # Export
 export PolyMatrix
@@ -26,7 +27,9 @@ export is_col_proper, is_row_proper
 export colred, rowred
 
 # Include files
-include("polymatrix.jl")
+include("type.jl")
+include("methods.jl")
+include("conversions.jl")
 include("arithmetic.jl")
 include("reductions.jl")
 include("filt.jl")
