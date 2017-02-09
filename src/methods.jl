@@ -4,12 +4,19 @@ function size(p::PolyMatrix, i::Int)
   return i ≤ length(p.dims) ? p.dims[i] : 1
 end
 
-length{T,M,O,N}(p::PolyMatrix{T,M,O,N})      = prod(size(p))
-start{T,M,O,N}(p::PolyMatrix{T,M,O,N})       = 1
-next{T,M,O,N}(p::PolyMatrix{T,M,O,N}, state) = p[state], state+1
-done{T,M,O,N}(p::PolyMatrix{T,M,O,N}, state) = state > length(p)
+length{T,M,V,N}(p::PolyMatrix{T,M,V,N})      = prod(size(p))
+start{T,M,V,N}(p::PolyMatrix{T,M,V,N})       = 1
+next{T,M,V,N}(p::PolyMatrix{T,M,V,N}, state) = p[state], state+1
+done{T,M,V,N}(p::PolyMatrix{T,M,V,N}, state) = state > length(p)
 linearindexing{T<:PolyMatrix}(::Type{T})     = Base.LinearFast()
-eltype{T,M,O,N}(p::PolyMatrix{T,M,O,N})      = Poly{T}
+eltype{T,M,V,N}(p::PolyMatrix{T,M,V,N})      = Poly{T}
+vartype{T,M,V,N}(p::PolyMatrix{T,M,V,N})     = V
+
+"""
+      variable(p::PolyMatrix)
+  return variable of `p` as a `Poly` object.
+"""
+variable{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N}) = variable(T, V)
 
 # Copying
 function copy{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})

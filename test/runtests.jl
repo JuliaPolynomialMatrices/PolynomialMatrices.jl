@@ -89,10 +89,10 @@ pm3 = PolyMatrix(B)
 t = pm1[1:2,2]
 @test coeffs(t[1]) ≈ coeffs(p2)
 @test coeffs(t[2]) ≈ coeffs(p1)
-@test typeof(pm1[1:2,2]) == PolyMatrix{Int,Vector{Int},Var{:s},1}
+@test typeof(pm1[1:2,2]) == PolyMatrix{Int,Vector{Int},vartype(pm1),1}
 
 t = pm1[1:2,2:2]
-@test typeof(t) == PolyMatrix{Int,Matrix{Int},Var{:s},2}
+@test typeof(t) == PolyMatrix{Int,Matrix{Int},vartype(pm1),2}
 
 # test setindex!
 @test_throws InexactError pm1[1] = Poly([1.5])

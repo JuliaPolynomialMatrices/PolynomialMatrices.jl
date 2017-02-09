@@ -5,7 +5,7 @@ using Polynomials
 using Compat
 
 # Import functions for overloading
-import Polynomials: coeffs, degree
+import Polynomials: coeffs, degree, variable
 import Base: start, next, done
 import Base: promote_rule, convert, size, length
 import Base: +,-,*
@@ -21,6 +21,7 @@ import Base: vecnorm, norm, isapprox, ==, isequal, hash
 
 # Export
 export PolyMatrix
+export vartype
 export col_degree, row_degree
 export high_col_deg_matrix, high_row_deg_matrix
 export is_col_proper, is_row_proper
