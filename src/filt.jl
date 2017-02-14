@@ -46,7 +46,7 @@ function filt!{H,T,S,M1,M2,O,N,G}(out::AbstractArray{H}, b::PolyMatrix{T,M1,O,N}
   if bs < sz
     bc = coeffs(b)
     for i = bs+1:sz
-      insert!(bc, i, zeros(similar(bc[0])))
+      bc[i] = zeros(similar(bc[0]))
     end
   end
   if 0 < as < sz

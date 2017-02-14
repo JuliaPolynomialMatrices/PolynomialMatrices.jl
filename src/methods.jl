@@ -87,9 +87,13 @@ function transpose{T,M<:AbstractMatrix,V,N}(p::PolyMatrix{T,M,Var{V},N})
   return r
 end
 
-function ctranspose{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})
-  r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), V)
-  for (k,v) in p.coeffs
+function ctranspose{T1,M1,V,N}(p::PolyMatrix{T1,M1,Var{V},N})
+  c     = coeffs(p)
+  k1,v1 = first(c)
+  vr    = ctranspose(v1)
+  M     = typeof(vr)
+  r     = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p), V)
+  for (k,v) in c
     r.coeffs[k] = ctranspose(v)
   end
   return r
