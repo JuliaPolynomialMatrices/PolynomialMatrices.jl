@@ -39,10 +39,14 @@ end
 +{T,M,V,N}(p1::PolyMatrix{T,M,Var{V},N}, p2::AbstractArray) = p1 + PolyMatrix(p2, V)
 +{T,M,V,N}(p1::AbstractArray, p2::PolyMatrix{T,M,Var{V},N}) = PolyMatrix(p1, V) + p2
 
-function -{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})
+function -{T1,M1,V,N}(p::PolyMatrix{T1,M1,Var{V},N})
   # figure out return type
-  r  = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p), V)
-  for (k,v) in coeffs(p)
+  c     = coeffs(p)
+  k1,v1 = first(c)
+  vr    = -v1
+  M     = typeof(vr)
+  r     = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p), V)
+  for (k,v) in c
     insert!(coeffs(r), k, -coeffs(p)[k])
   end
   return r

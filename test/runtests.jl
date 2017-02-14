@@ -20,9 +20,15 @@ B   = eye(Float64,2)
 
 @test_throws DomainError PolyMatrix(A, (5,nu))
 @test_throws DomainError PolyMatrix(A, (ny,3))
-@test_throws DomainError PolyMatrix(randn(3,3,3))
 pm2 = PolyMatrix(A, (ny,nu))
 pm3 = PolyMatrix(B)
+
+A = randn(3,2,5)
+PolyMatrix(A, :s)
+A = randn(3,2)
+PolyMatrix(A, :s)
+A = randn(3)
+PolyMatrix(A, :s)
 
 # test equality and isapprox
 p1  = Poly([2,1,3.], :s)

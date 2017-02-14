@@ -69,27 +69,59 @@ function PolyMatrix{M1<:AbstractArray}(PM::M1)
   PolyMatrix(c, size(PM), var)
 end
 
-function PolyMatrix{M<:AbstractArray,N}(A::M, dims::NTuple{N,Int}, var::SymbolLike=:x)
-  c  = SortedDict(Dict{Int,M}())
+# TODO should we simplify these constructors somehow
+# Note: There is now copy in the following constructors
+function PolyMatrix{T<:Number}(A::AbstractArray{T}, var::SymbolLike=:x)
+  return PolyMatrix(A, size(A), @compat Symbol(var))
+end
+
+# TODO should we support vectors or only matrices
+function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int}, var::SymbolLike=:x)
   ny = dims[1]
-  m  = div(size(A,1), ny)
-  if size(A,1) != m*ny || size(A,2) != dims[2]
+  dn = div(size(A,1), ny)
+  if rem(size(A,1), ny) != 0
     warn("PolyMatrix: dimensions are not consistent")
     throw(DomainError())
   end
-  for k = 0:m-1
-    p = view(A, k*ny+(1:ny), :)
+  p0 = dn > 0 ? p0 = A[1:ny] : zeros(eltype(A), dims)
+  c  = SortedDict(Dict{Int,typeof(p0)}())
+  insert!(c, 0, p0)
+  for k = 1:dn-1
+    p = A[k*ny+(1:ny)]
     insert!(c, k, p)
   end
   return PolyMatrix(c, dims, @compat Symbol(var))
 end
 
-function PolyMatrix{T<:Number}(A::AbstractArray{T}, var::SymbolLike=:x)
-  if ndims(A) > 2
-    warn("PolyMatrix: higher order arrays not supported at this point")
+function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int}, var::SymbolLike=:x)
+  ny = dims[1]
+  dn = div(size(A,1), ny)
+  if rem(size(A,1), ny) != 0 || size(A,2) != dims[2]
+    warn("PolyMatrix: dimensions are not consistent")
     throw(DomainError())
   end
-  c = SortedDict(Dict{Int,typeof(A)}())
-  insert!(c, 0, A)
-  return PolyMatrix(c, size(A), @compat Symbol(var))
+  p0 = dn > 0 ? p0 = A[1:ny, :] : zeros(eltype(A),dims)
+  c  = SortedDict(Dict{Int,typeof(p0)}())
+  insert!(c, 0, p0)
+  for k = 1:dn-1
+    p = A[k*ny+(1:ny), :]
+    insert!(c, k, p)
+  end
+  return PolyMatrix(c, dims, @compat Symbol(var))
+end
+
+function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int,Int}, var::SymbolLike=:x)
+  if size(A) != dims
+    warn("PolyMatrix: dimensions are not consistent")
+    throw(DomainError())
+  end
+  dn = dims[3]
+  p0 = dn > 0 ? A[:, :, 1] : zeros(eltype(A),dims[1,2])
+  c  = SortedDict(Dict{Int,typeof(p0)}())
+  insert!(c, 0, p0)
+  for k = 1:dn-1
+    p = A[:, :, k+1]
+    insert!(c, k, p)
+  end
+  return PolyMatrix(c, dims[1:2], @compat Symbol(var))
 end
