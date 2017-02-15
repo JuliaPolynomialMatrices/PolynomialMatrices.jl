@@ -159,7 +159,6 @@ function isapprox{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V1},N}, p2::Poly
   throw(DomainError())
 end
 
-
 function isapprox{T1,M1,V,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,Var{V},N}, n::M2;
   rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0, norm::Function=vecnorm)
   d = norm(p1 - n)
