@@ -100,3 +100,68 @@ end
 
 *{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::AbstractArray) = p1 * PolyMatrix(p2, V)
 *{T1,M1,V,N}(p1::AbstractArray, p2::PolyMatrix{T1,M1,Var{V},N}) = PolyMatrix(p1, V) * p2
+
+# determinant
+function det{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})
+  size(p,1) == size(p,2) || throw(DimensionMismatch("det: PolyMatrix must be square"))
+  n  = size(p,1)
+  dn = (degree(p))*n+1
+  # copy all elements into three-dimensional matrix
+  A = zeros(n,n,dn)
+  for (k,v) in coeffs(p)
+    A[:,:,k+1] = v
+  end
+  # take fft and evaluate determinant at each interpolation point
+  B = fft(A,3)
+  a = [det(B[:,:,k]) for k = 1:dn]
+  # interpolate using fft
+  ar = _truncate(T,ifft(a))
+  return Poly(ar,V)
+end
+
+function _truncate{T<:Real,T2}(::Type{T}, a::AbstractArray{T2})
+  real(a)
+end
+
+function _truncate{T<:Integer,T2}(::Type{T}, a::AbstractArray{T2})
+  round(real(a))
+end
+
+# inversion
+# return determinant polynomial and adjugate polynomial matrix
+function inv{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})
+  size(p,1) == size(p,2) || throw(DimensionMismatch("det: PolyMatrix must be square"))
+  n  = size(p,1)
+  dn = degree(p)*n+1
+  # copy all elements into three-dimensional matrix
+  A = zeros(T,n,n,dn)
+  for (k,v) in coeffs(p)
+    A[:,:,k+1] = v
+  end
+  # take fft and evaluate determinant at each interpolation point
+  B = fft(A,3)
+  a = [det(B[:,:,k]) for k = 1:dn]
+  ar = _truncate(T,ifft(a))
+  rdet = Poly(ar,V)
+
+  v2  = zeros(B)
+  for k in 1:dn
+    for col in 1:n
+      for row in 1:n
+        row_idx = _detrange(row,n)
+        col_idx = _detrange(col,n)
+        v2[row,col,k] = (-1)^(mod(row+col,2))*det(view(view(B, :, row_idx, k), col_idx, :))
+      end
+    end
+  end
+  r = _truncate(T, ifft(v2,3))
+
+  return rdet, PolyMatrix(r, size(r), V)
+end
+
+function _detrange(i,n)
+  a = 1:i-1
+  b = i+1:n
+  r = vcat(collect(a), collect(b))
+  return ifelse(length(r) > 1, r, r[1]:r[1])
+end

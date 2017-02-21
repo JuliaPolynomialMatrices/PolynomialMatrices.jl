@@ -133,3 +133,14 @@ out = similar(x)
 filt(pm2,pm2,x)
 filt(pm3,pm2,x)
 filt(pm2,pm3,x)
+
+# test inverse
+p1  = Poly([1.0,2.0,3.5],:s)
+p2  = Poly([2,1.1,3,4],:s)
+p3  = Poly([2,3.1,4,5,7.3],:s)
+m   = [p1 p2; p3 p1]
+pm1 = PolyMatrix(m)
+
+det1, adj1 = inv(pm1)
+t1 = adj1*pm1
+@test norm(t1[2,1])/norm(t1[1,1]) < eps(Float64)
