@@ -93,19 +93,19 @@ function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int}, var::SymbolLike=:x
   return PolyMatrix(c, dims, @compat Symbol(var))
 end
 
-function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int}, var::SymbolLike=:x)
+function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int}, var::SymbolLike=:x; reverse::Bool=false)
   ny = dims[1]
   dn = div(size(A,1), ny)
   if rem(size(A,1), ny) != 0 || size(A,2) != dims[2]
     warn("PolyMatrix: dimensions are not consistent")
     throw(DomainError())
   end
-  p0 = dn > 0 ? p0 = A[1:ny, :] : zeros(eltype(A),dims)
+  p0 = dn > 0 ? A[1:ny, :] : zeros(eltype(A),dims)
   c  = SortedDict(Dict{Int,typeof(p0)}())
-  insert!(c, 0, p0)
-  for k = 1:dn-1
-    p = A[k*ny+(1:ny), :]
-    insert!(c, k, p)
+  for k = 0:dn-1
+    idx = reverse ? (dn-k-1)*ny+(1:ny) : k*ny+(1:ny)
+    v = A[idx, :]
+    insert!(c, k, v)
   end
   return PolyMatrix(c, dims, @compat Symbol(var))
 end
