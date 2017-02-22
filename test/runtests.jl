@@ -144,3 +144,15 @@ pm1 = PolyMatrix(m)
 det1, adj1 = inv(pm1)
 t1 = adj1*pm1
 @test norm(t1[2,1])/norm(t1[1,1]) < eps(Float64)
+
+# triangularization
+s = variable("s")
+p = PolyMatrix([s-1 s^2-1; 2 2s+2; 0 3])
+U,L = triang(p, false, 1)
+A = PolyMatrix([-1.225s+1.225 0; -2.450 0; -1.225 1.732])
+@test isapprox(p*U, A; rtol=1e-3)
+@test isapprox(p*U, L)
+
+U,L = triang(p)
+@test isapprox(p*U, A; rtol=1e-3)
+@test isapprox(p*U, L)
