@@ -147,12 +147,25 @@ t1 = adj1*pm1
 
 # triangularization
 s = variable("s")
-p = PolyMatrix([s-1 s^2-1; 2 2s+2; 0 3])
+p = PolyMatrix([s-1 s^2-1; 2*one(s) 2s+2; zero(s) 3*one(s)])
 U,L = triang(p, false, 1)
-A = PolyMatrix([-1.225s+1.225 0; -2.450 0; -1.225 1.732])
-@test isapprox(p*U, A; rtol=1e-3)
+LT = PolyMatrix([-1.225s+1.225 zero(s); -2.450*one(s) zero(s); -1.225*one(s) 1.732*one(s)])
+@test isapprox(p*U, LT; rtol=1e-3)
+@test isapprox(L, LT; rtol=1e-3)
 @test isapprox(p*U, L)
 
 U,L = triang(p)
-@test isapprox(p*U, A; rtol=1e-3)
+@test isapprox(p*U, LT; rtol=1e-3)
+@test isapprox(L, LT; rtol=1e-3)
 @test isapprox(p*U, L)
+
+# hermite
+s = variable("s")
+p = PolyMatrix([-s^3-2s^2+1 -(s+1)^2; (s+2)^2*(s+1) zero(s)])
+HT = PolyMatrix([s+1 zero(s); (s+2)^2*(s+1) (s+2)^2*(s+1)^2])
+UT = PolyMatrix([one(s) s+1; -s -s^2-s+1])
+
+U,H = hermite(p)
+@test isapprox(p*U, HT)
+@test isapprox(H, HT)
+@test isapprox(U, UT)
