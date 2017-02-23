@@ -27,7 +27,7 @@ export col_degree, row_degree
 export high_col_deg_matrix, high_row_deg_matrix
 export is_col_proper, is_row_proper
 export colred, rowred
-export triang
+export triang, hermite
 
 typealias SymbolLike  Union{Symbol,AbstractString,Char}
 typealias ForwardOrdering Base.Order.ForwardOrdering
@@ -39,6 +39,5 @@ include("conversions.jl")
 include("arithmetic.jl")
 include("reductions.jl")
 include("filt.jl")
-include("triang.jl")
 
 end # module

@@ -1,3 +1,171 @@
+"""
+    hermite(p, iterative::Bool=true, dᵤ) -> U, H
+
+Hermite form of a Polynomial Matrix.
+The method returns unimodular `U` and `H` such that `p U = H`, where `H` is
+in Hermite form of `p`.
+
+By default `p` is triangularized using the iterative [version 3'][1] (see `triang`).
+The triangular form is subsequently brought into Hermite form using the Euclidian
+algorithm.
+
+# Examples
+```julia
+julia> s = variable("s")
+p = PolyMatrix([-s^3-2s^2+1 -(s+1)^2; (s+2)^2*(s+1) zero(s)])
+U,H = hermite(p)
+```
+
+# References
+
+-  [1]: D. Henrion, M. Sebek "Reliable Numerical Methods for Polynomial Matrix
+        Triangularization" IEEE Transactions on Automatic Control, vol. 44,
+        no. 3, Mar. 1999.
+"""
+function hermite{T1,M,V,N}(p::PolyMatrix{T1,M,Var{V},N}, iterative::Bool=true, dᵤ::Int=-1)
+  U,L,d = _triang(p, iterative, dᵤ)
+  n,m   = size(p)
+
+  # scale diagonal elements first
+  Σ = [findfirst(L[:,k]) for k in 1:m]
+  U1 = Diagonal([1./L[Σ[k],k] for k in 1:m])
+  U = U*U1
+  L = L*U1
+
+  # reduce order
+  U2 = eye(m)
+  for i in 2:m
+    for j in 1:i-1
+      σ = Σ[i]
+      U2[i,j] = -L[σ,j]
+    end
+  end
+
+  U = U*U2
+  L = L*U2
+
+  SL = _unshift(L,d)
+  return PolyMatrix(U, (m,m), V; reverse=true), PolyMatrix(SL, (n,m), V; reverse=true)
+end
+
+"""
+    triang(p, iterative::Bool=true, dᵤ) -> U, L
+
+Polynomial Matrix triangularization based on Sylvester matrix [method 3][1].
+The method returns unimodular `U` and `L` such that `p U = L`, where `L` is lower triangular.
+
+By default the iterative [version 3'][1] is used. If `iterative` is to `false`,
+the [method 3][1] tries to triangularize `p` with a reduction matrix of degree `dᵤ`.
+By default `dᵤ` is set high enough to guarantee triangularization if it is possible.
+
+Note that not necessarily the hermite form is returned (see `hermite`).
+
+# Examples
+```julia
+julia> s = variable("s")
+p = PolyMatrix([s-1 s^2-1; 2 2s+2; 0 3])
+U = triang(p)
+3x1 Array{Int64,2}:
+  Poly(-0.816497 + 0.408248⋅s)  Poly(-0.57735 - 0.57735⋅s)
+  Poly(-0.408248)               Poly(0.57735)
+```
+
+# References
+
+-  [1]: D. Henrion, M. Sebek "Reliable Numerical Methods for Polynomial Matrix
+        Triangularization" IEEE Transactions on Automatic Control, vol. 44,
+        no. 3, Mar. 1999.
+"""
+function triang{T1,M,V,N}(p::PolyMatrix{T1,M,Var{V},N}, iterative::Bool=true, dᵤ::Int=-1)
+  U,L,d = _triang(p, iterative, dᵤ)
+  n,m = size(p)
+  SL = _unshift(L,d)
+  return PolyMatrix(U, (m,m), V; reverse=true), PolyMatrix(SL, (n,m), V; reverse=true)
+end
+
+function _unshift(L::AbstractMatrix,d::Int)
+  n,r = divrem(size(L,1), d+1)
+  r == 0 || throw(DimensionMismatch())
+  SL = zeros(L)
+  for i in 0:d
+    for j in 0:n-1
+      SL[(d-i)*n+j+1,:] = L[(j)*(d+1)+d-i+1,:]
+    end
+  end
+  return SL
+end
+
+function _triang{T1,M,V,N}(p::PolyMatrix{T1,M,Var{V},N}, iterative::Bool=true, dᵤ::Int=-1)
+  # allow user defined dᵤ
+  if !iterative && dᵤ < 0
+    dᵤ = _mindegree(p)
+  elseif dᵤ < 0
+    dᵤ = 0
+  end
+  d   = degree(p)+dᵤ
+  n,m = size(p)
+
+  # tolerance for extracting ϵshape
+  ϵ = sqrt(n)*sqrt(m)*d*1e-16
+  T = float(T1)
+  # construct row permuted sylvester matrix
+  Rd = zeros(T, n*(d+1), m*(dᵤ+1))
+  for (k,v) in coeffs(p)
+    for i in 0:n-1, j in 0:dᵤ
+      Rd[n*(d+1)-i*(d+1)-k-dᵤ+j, j*m+(1:m)] = v[n-i,:]
+    end
+  end
+  # should be changed when support for 0.4 drops (lq not in 0.4)
+  q,L = qr(Rd.')
+  L   = L'
+  U   = q
+
+  Σb = zeros(Int,m*(dᵤ+1))
+  for i in 1:m*(dᵤ+1)
+    # TODO if index is zero p is not of full rank.
+    # Should we call the method with Identity appended?
+    Σb[i] = findfirst(x->abs(x) > ϵ, L[:,i])
+    L[1:Σb[i]-1,i] = zeros(T, Σb[i]-1)
+  end
+
+  C = [zeros(Int,0) for i in 1:n]
+  # calculate index sets
+  for k in eachindex(Σb)
+    σ    = Σb[k]
+    it,r = divrem(σ, d+1)
+    i    = r > 0 ? it+1 : it
+    push!(C[i], k)
+  end
+
+  Σ = zeros(Int,0)
+  for i in 1:m*(dᵤ+1)
+    if Σb[i] > n
+      break
+    end
+    if !isempty(C[Σb[i]])
+      push!(Σ,i)
+    end
+  end
+
+  if length(Σ) < m
+    if iterative
+      return _triang(p, iterative, dᵤ+1)
+    else
+      throw(ErrorException("triang: failed to triangularize"))
+    end
+  else
+    k = [maximum(C[i]) for i in Σ]
+    return U[:,k], L[:,k], d
+  end
+end
+
+function _mindegree(p::PolyMatrix)
+  m = minimum(size(p))
+  rowdegs = sort(vec(row_degree(p)))
+  coldegs = sort(vec(col_degree(p)))
+  return min(sum(rowdegs[end-m+2:end]), sum(coldegs[end-m+2:end]))
+end
+
 # Computes the degree of each column of a polynomial matrix
 function col_degree{T,M,O,N}(p::PolyMatrix{T,M,O,N})
   max_deg = degree(p)
