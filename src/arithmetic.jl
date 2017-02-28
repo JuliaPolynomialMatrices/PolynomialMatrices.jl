@@ -2,7 +2,7 @@ function PMcheck(p1::PolyMatrix, p2::PolyMatrix)
   @assert 1==1
 end
 
-function +{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatrix{T2,M2,Var{V},N})
+function +{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2,Val{V},N})
   size(p1) == size(p2) || error("incompatible sizes")
   PMcheck(p1,p2)
 
@@ -31,15 +31,15 @@ function +{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatrix{T2,M2
   return r
 end
 
-function +{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V1},N}, p2::PolyMatrix{T2,M2,Var{V2},N})
+function +{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V1},N}, p2::PolyMatrix{T2,M2,Val{V2},N})
   warn("p1≈p2: `p1` ($T1,$V1) and `p2` ($T2,$V2) have different variables")
   throw(DomainError())
 end
 
-+{T,M,V,N}(p1::PolyMatrix{T,M,Var{V},N}, p2::AbstractArray) = p1 + PolyMatrix(p2, V)
-+{T,M,V,N}(p1::AbstractArray, p2::PolyMatrix{T,M,Var{V},N}) = PolyMatrix(p1, V) + p2
++{T,M,V,N}(p1::PolyMatrix{T,M,Val{V},N}, p2::AbstractArray) = p1 + PolyMatrix(p2, V)
++{T,M,V,N}(p1::AbstractArray, p2::PolyMatrix{T,M,Val{V},N}) = PolyMatrix(p1, V) + p2
 
-function -{T1,M1,V,N}(p::PolyMatrix{T1,M1,Var{V},N})
+function -{T1,M1,V,N}(p::PolyMatrix{T1,M1,Val{V},N})
   # figure out return type
   c     = coeffs(p)
   k1,v1 = first(c)
@@ -52,16 +52,16 @@ function -{T1,M1,V,N}(p::PolyMatrix{T1,M1,Var{V},N})
   return r
 end
 
--{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatrix{T2,M2,Var{V},N}) = +(p1,-p2)
-function -{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V1},N}, p2::PolyMatrix{T2,M2,Var{V2},N})
+-{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2,Val{V},N}) = +(p1,-p2)
+function -{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V1},N}, p2::PolyMatrix{T2,M2,Val{V2},N})
   warn("p1≈p2: `p1` ($T1,$V1) and `p2` ($T2,$V2) have different variables")
   throw(DomainError())
 end
 
--{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::AbstractArray) = p1 - PolyMatrix(p2, V)
--{T1,M1,V,N}(p1::AbstractArray, p2::PolyMatrix{T1,M1,Var{V},N}) = PolyMatrix(p1, V) - p2
+-{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::AbstractArray) = p1 - PolyMatrix(p2, V)
+-{T1,M1,V,N}(p1::AbstractArray, p2::PolyMatrix{T1,M1,Val{V},N}) = PolyMatrix(p1, V) - p2
 
-function *{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatrix{T2,M2,Var{V},N})
+function *{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2,Val{V},N})
   size(p1,2) == size(p2,1) || error("incompatible sizes")
   PMcheck(p1,p2)
 
@@ -93,16 +93,16 @@ function *{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatrix{T2,M2
   return r
 end
 
-function *{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V1},N}, p2::PolyMatrix{T2,M2,Var{V2},N})
+function *{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V1},N}, p2::PolyMatrix{T2,M2,Val{V2},N})
   warn("p1≈p2: `p1` ($T1,$V1) and `p2` ($T2,$V2) have different variables")
   throw(DomainError())
 end
 
-*{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::AbstractArray) = p1 * PolyMatrix(p2, V)
-*{T1,M1,V,N}(p1::AbstractArray, p2::PolyMatrix{T1,M1,Var{V},N}) = PolyMatrix(p1, V) * p2
+*{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::AbstractArray) = p1 * PolyMatrix(p2, V)
+*{T1,M1,V,N}(p1::AbstractArray, p2::PolyMatrix{T1,M1,Val{V},N}) = PolyMatrix(p1, V) * p2
 
 # determinant
-function det{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})
+function det{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
   size(p,1) == size(p,2) || throw(DimensionMismatch("det: PolyMatrix must be square"))
   n  = size(p,1)
   dn = (degree(p))*n+1
@@ -129,7 +129,7 @@ end
 
 # inversion
 # return determinant polynomial and adjugate polynomial matrix
-function inv{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})
+function inv{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
   size(p,1) == size(p,2) || throw(DimensionMismatch("det: PolyMatrix must be square"))
   n  = size(p,1)
   dn = degree(p)*n+1

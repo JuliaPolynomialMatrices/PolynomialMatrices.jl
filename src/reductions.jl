@@ -22,7 +22,7 @@ U,H = hermite(p)
         Triangularization" IEEE Transactions on Automatic Control, vol. 44,
         no. 3, Mar. 1999.
 """
-function hermite{T1,M,V,N}(p::PolyMatrix{T1,M,Var{V},N}, iterative::Bool=true, dᵤ::Int=-1)
+function hermite{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
   U,L,d = _triang(p, iterative, dᵤ)
   n,m   = size(p)
 
@@ -76,7 +76,7 @@ U = triang(p)
         Triangularization" IEEE Transactions on Automatic Control, vol. 44,
         no. 3, Mar. 1999.
 """
-function triang{T1,M,V,N}(p::PolyMatrix{T1,M,Var{V},N}, iterative::Bool=true, dᵤ::Int=-1)
+function triang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
   U,L,d = _triang(p, iterative, dᵤ)
   n,m = size(p)
   SL = _unshift(L,d)
@@ -95,7 +95,7 @@ function _unshift(L::AbstractMatrix,d::Int)
   return SL
 end
 
-function _triang{T1,M,V,N}(p::PolyMatrix{T1,M,Var{V},N}, iterative::Bool=true, dᵤ::Int=-1)
+function _triang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
   # allow user defined dᵤ
   if !iterative && dᵤ < 0
     dᵤ = _mindegree(p)
@@ -259,14 +259,14 @@ end
 # It would be preferable to implement Geurts-Praagman's method
 # NOTE: Should the procedure end with an error if p is not full rank, or simply
 # indicate this as an output argument (a la SLICOT)?
-function colred{T,M,O,N}(p::PolyMatrix{T,M,O,N})
+function colred{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
   N < 2 || size(p,1) ≥ size(p,2) ||
     error("colred: Polynomial matrix is not full column rank")
 
   p_temp = copy(p)
   c       = p_temp.coeffs          # Dictionary of coefficient matrices of p
   num_col = N < 2 ? 1 : size(p,2)  # Number of columns of p
-  U       = PolyMatrix(eye(T,num_col),p.var)
+  U       = PolyMatrix(eye(T,num_col), V)
 
   indN    = zeros(Int,num_col)  # Collection of non-zero entries of n
   while true
@@ -323,7 +323,7 @@ function colred{T,M,O,N}(p::PolyMatrix{T,M,O,N})
     end
 
     # Update unimodular transformation matrix U
-    U = U*PolyMatrix(Utemp,(num_col,num_col),p.var)
+    U = U*PolyMatrix(Utemp,(num_col,num_col), V)
 
     # Reset collection indN
     fill!(indN, 0)
@@ -332,12 +332,10 @@ end
 
 # Computes the simultaneous column reduced form of two polynomial matrices `p1` and `p2`,
 # according to `p1`(via Wolovich's method)
-function colred{T,M1,M2,O1,O2,N1,N2}(p1::PolyMatrix{T,M1,O1,N1},
-  p2::PolyMatrix{T,M2,O2,N2})
+function colred{T,M1,M2,V,N1,N2}(p1::PolyMatrix{T,M1,Val{V},N1},
+  p2::PolyMatrix{T,M2,Val{V},N2})
   size(p1,2) == size(p2,2) || (N1 < 2 && N2 < 2) ||
     error("colred: Both polynomial matrices should have the same number of columns")
-  p1.var == p2.var ||
-    error("colred: Both polynomial matrices should be in the same variable")
   N1 < 2 || size(p1,1) ≥ size(p1,2) ||
     error("colred: Polynomial matrix `p1` is not full column rank")
 
@@ -405,13 +403,13 @@ end
 
 # Computes the row reduced form of a polynomial matrix
 # (via Wolovich's method)
-function rowred{T,M,O,N}(p::PolyMatrix{T,M,O,N})
+function rowred{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
   (N < 2 && size(p,1) ≤ 1) || size(p,1) ≤ size(p,2) ||
     error("rowred: Polynomial matrix is not full row rank")
   p_temp  = copy(p)
   c       = coeffs(p_temp)  # Dictionary of coefficient matrices of p
   num_row = size(p,1)      # Number of rows of p
-  U       = PolyMatrix(eye(T,num_row),p.var)
+  U       = PolyMatrix(eye(T,num_row), V)
 
   indN    = zeros(Int,num_row)  # Collection of non-zero entries of n
   while true
@@ -469,7 +467,7 @@ function rowred{T,M,O,N}(p::PolyMatrix{T,M,O,N})
     end
 
     # Update unimodular transformation matrix U
-    U = PolyMatrix(Utemp,(num_row,num_row),p.var)*U
+    U = PolyMatrix(Utemp,(num_row,num_row), V)*U
 
     # Reset collection indN
     fill!(indN, 0)
@@ -478,12 +476,10 @@ end
 
 # Computes the simultaneous row reduced form of two polynomial matrices `p1` and `p2`,
 # according to `p1`(via Wolovich's method)
-function rowred{T,M1,M2,O1,O2,N1,N2}(p1::PolyMatrix{T,M1,O1,N1},
-  p2::PolyMatrix{T,M2,O2,N2})
+function rowred{T,M1,M2,V,N1,N2}(p1::PolyMatrix{T,M1,Val{V},N1},
+  p2::PolyMatrix{T,M2,Val{V},N2})
   size(p1,1) == size(p2,1) ||
     error("rowred: Both polynomial matrices should have the same number of rows")
-  p1.var == p2.var ||
-    error("rowred: Both polynomial matrices should be in the same variable")
   (N1 < 2 && size(p1,1) ≤ 1) || size(p1,1) ≤ size(p1,2) ||
     error("rowred: Polynomial matrix `p1` is not full row rank")
 

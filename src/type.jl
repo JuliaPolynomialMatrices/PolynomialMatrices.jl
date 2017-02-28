@@ -1,9 +1,3 @@
-"""
-Value type for encoding the variable used in constructing `PolyMatrix`s.
-"""
-immutable Var{T}
-end
-
 # Parameters:
 #   T: type of the polynomials' coefficients
 #   M: type of the matrices of coefficients
@@ -19,12 +13,12 @@ immutable PolyMatrix{T,M,V,N} <: AbstractArray{Polynomials.Poly{T},N}
   @compat function (::Type{PolyMatrix}){M,N}(
       coeffs::SortedDict{Int,M,ForwardOrdering}, dims::NTuple{N,Int}, var::Symbol=:x)
     T = eltype(M)
-    new{T,M,Var{var},N}(coeffs, dims)
+    new{T,M,Val{var},N}(coeffs, dims)
   end
 end
 
 # Evaluation of a polynomial matrix at a specific value x
-@compat function (p::PolyMatrix{T,M,V,N}){T,M,V,N,S}(x::S)
+@compat function (p::PolyMatrix{T,M,Val{V},N}){T,M,V,N,S}(x::S)
   degree(p) == 0 && return convert(M, zeros(T,size(p)...))*zero(S)
 
   c    = p.coeffs
