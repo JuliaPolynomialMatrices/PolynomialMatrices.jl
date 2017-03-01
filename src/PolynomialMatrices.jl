@@ -17,7 +17,7 @@ import Base: insert!
 import Base: checkbounds
 import Base: filt!, filt
 import Compat.view
-import Base: vecnorm, norm, isapprox, ==, isequal, hash
+import Base: vecnorm, norm, rank, isapprox, ==, isequal, hash
 
 # Export
 export PolyMatrix
@@ -27,7 +27,7 @@ export col_degree, row_degree
 export high_col_deg_matrix, high_row_deg_matrix
 export is_col_proper, is_row_proper
 export colred, rowred
-export triang, hermite
+export ltriang, rtriang, hermite
 
 typealias SymbolLike  Union{Symbol,AbstractString,Char}
 typealias ForwardOrdering Base.Order.ForwardOrdering
