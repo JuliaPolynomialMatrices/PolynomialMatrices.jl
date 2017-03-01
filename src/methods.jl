@@ -4,22 +4,22 @@ function size(p::PolyMatrix, i::Int)
   return i ≤ length(p.dims) ? p.dims[i] : 1
 end
 
-length{T,M,V,N}(p::PolyMatrix{T,M,V,N})      = prod(size(p))
-start{T,M,V,N}(p::PolyMatrix{T,M,V,N})       = 1
-next{T,M,V,N}(p::PolyMatrix{T,M,V,N}, state) = p[state], state+1
-done{T,M,V,N}(p::PolyMatrix{T,M,V,N}, state) = state > length(p)
+length{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})      = prod(size(p))
+start{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})       = 1
+next{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, state) = p[state], state+1
+done{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, state) = state > length(p)
 linearindexing{T<:PolyMatrix}(::Type{T})     = Base.LinearFast()
-eltype{T,M,V,N}(p::PolyMatrix{T,M,V,N})      = Poly{T}
-vartype{T,M,V,N}(p::PolyMatrix{T,M,V,N})     = V
+eltype{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})      = Poly{T}
+vartype{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})     = V
 
 """
       variable(p::PolyMatrix)
   return variable of `p` as a `Poly` object.
 """
-variable{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N}) = variable(T, V)
+variable{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}) = variable(T, V)
 
 # Copying
-function copy{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})
+function copy{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
   r = PolyMatrix( SortedDict(Dict{Int,M}()), size(p), V)
   for (k,v) in coeffs(p)
     r.coeffs[k] = copy(v)
@@ -28,7 +28,7 @@ function copy{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})
 end
 
 # getindex
-function getindex{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N}, i::Int)
+function getindex{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, i::Int)
   @compat @boundscheck checkbounds(p, i)
   r = Poly([v[i] for (k,v) in p.coeffs],V)
   return r
@@ -44,7 +44,7 @@ function getindex(A::PolyMatrix, I...)
 end
 
 # setindex!
-function setindex!{T,M,V,N,U}(Pm::PolyMatrix{T,M,Var{V},N}, p::Poly{U}, i::Int)
+function setindex!{T,M,V,N,U}(Pm::PolyMatrix{T,M,Val{V},N}, p::Poly{U}, i::Int)
   @compat @boundscheck checkbounds(Pm, i)
   c = coeffs(p)
   Pmc = coeffs(Pm)
@@ -69,7 +69,7 @@ function setindex!{T,M,V,N,U}(Pm::PolyMatrix{T,M,Var{V},N}, p::Poly{U}, i::Int)
   end
 end
 
-function insert!{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N}, k::Int, A)
+function insert!{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, k::Int, A)
   insert!(coeffs(p), k, A)
 end
 
@@ -77,9 +77,9 @@ end
 coeffs(p::PolyMatrix) = p.coeffs
 
 ## Maximum degree of the polynomials in a polynomial matrix
-degree{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N})  = last(coeffs(p))[1]
+degree{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})  = last(coeffs(p))[1]
 
-function transpose{T,M<:AbstractMatrix,V,N}(p::PolyMatrix{T,M,Var{V},N})
+function transpose{T,M<:AbstractMatrix,V,N}(p::PolyMatrix{T,M,Val{V},N})
   r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), V)
   for (k,v) in p.coeffs
     r.coeffs[k] = transpose(v)
@@ -87,7 +87,7 @@ function transpose{T,M<:AbstractMatrix,V,N}(p::PolyMatrix{T,M,Var{V},N})
   return r
 end
 
-function ctranspose{T1,M1,V,N}(p::PolyMatrix{T1,M1,Var{V},N})
+function ctranspose{T1,M1,V,N}(p::PolyMatrix{T1,M1,Val{V},N})
   c     = coeffs(p)
   k1,v1 = first(c)
   vr    = ctranspose(v1)
@@ -103,16 +103,16 @@ end
 # TODO Lₚ norms
 # vecnorm
 # stacks all coefficient matrices and calls built in vecnorm on resulting tall matrix
-function vecnorm{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Var{V},N}, p::Real=2)
+function vecnorm{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Val{V},N}, p::Real=2)
   c = coeffs(p1)
   vecnorm(vcat(values(c)...), p)
 end
 
 ## Comparison
-=={T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatrix{T2,M2,Var{V},N}) = (p1.coeffs == p2.coeffs)
-=={T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V1},N}, p2::PolyMatrix{T2,M2,Var{V2},N}) = false
+=={T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2,Val{V},N}) = (p1.coeffs == p2.coeffs)
+=={T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V1},N}, p2::PolyMatrix{T2,M2,Val{V2},N}) = false
 
-function =={T1,M1,V,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,Var{V},N}, n::M2)
+function =={T1,M1,V,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,Val{V},N}, n::M2)
   c = coeffs(p1)
   has_zero = false
   for (k,v) in c
@@ -125,12 +125,12 @@ function =={T1,M1,V,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,Var{V},N}, n::M2)
   end
   return ifelse(has_zero, true, n == zeros(n))
 end
-=={T1,M1,V,N,M2<:AbstractArray}(n::M2, p1::PolyMatrix{T1,M1,Var{V},N}) = (p1 == n)
+=={T1,M1,V,N,M2<:AbstractArray}(n::M2, p1::PolyMatrix{T1,M1,Val{V},N}) = (p1 == n)
 
-hash{T1,M1,V,N}(p::PolyMatrix{T1,M1,Var{V},N}, h::UInt) = hash(V, hash(coeffs(p), h))
+hash{T1,M1,V,N}(p::PolyMatrix{T1,M1,Val{V},N}, h::UInt) = hash(V, hash(coeffs(p), h))
 isequal(p1::PolyMatrix, p2::PolyMatrix) = hash(p1) == hash(p2)
 
-function isapprox{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatrix{T2,M2,Var{V},N};
+function isapprox{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2,Val{V},N};
   rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0, norm::Function=vecnorm)
   d = norm(p1 - p2)
   if isfinite(d)
@@ -153,13 +153,13 @@ function isapprox{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V},N}, p2::PolyMatri
     return true
   end
 end
-function isapprox{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Var{V1},N}, p2::PolyMatrix{T2,M2,Var{V2},N};
+function isapprox{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V1},N}, p2::PolyMatrix{T2,M2,Val{V2},N};
   rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0, norm::Function=vecnorm)
   warn("p1≈p2: `p1` ($T1,$V1) and `p2` ($T2,$V2) have different variables")
   throw(DomainError())
 end
 
-function isapprox{T1,M1,V,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,Var{V},N}, n::M2;
+function isapprox{T1,M1,V,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,Val{V},N}, n::M2;
   rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0, norm::Function=vecnorm)
   d = norm(p1 - n)
   if isfinite(d)
@@ -178,7 +178,7 @@ function isapprox{T1,M1,V,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,Var{V},N}, n
     return ifelse(has_zero, true, isapprox(n,zeros(n)))
   end
 end
-isapprox{T1,M1,V,N,M2<:AbstractArray}(n::M2, p1::PolyMatrix{T1,M1,Var{V},N}) = (p1 == n)
+isapprox{T1,M1,V,N,M2<:AbstractArray}(n::M2, p1::PolyMatrix{T1,M1,Val{V},N}) = (p1 == n)
 
-summary{T,M,V,N}(p::PolyMatrix{T,M,Var{V},N}) =
+summary{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}) =
   string(Base.dims2string(p.dims), " PolyArray{$T,$N}")

@@ -95,10 +95,10 @@ pm3 = PolyMatrix(B)
 t = pm1[1:2,2]
 @test coeffs(t[1]) ≈ coeffs(p2)
 @test coeffs(t[2]) ≈ coeffs(p1)
-@test typeof(pm1[1:2,2]) == PolyMatrix{Int,Vector{Int},vartype(pm1),1}
+@test typeof(pm1[1:2,2]) == PolyMatrix{Int,Vector{Int},Val{vartype(pm1)},1}
 
 t = pm1[1:2,2:2]
-@test typeof(t) == PolyMatrix{Int,Matrix{Int},vartype(pm1),2}
+@test typeof(t) == PolyMatrix{Int,Matrix{Int},Val{vartype(pm1)},2}
 
 # test setindex!
 @test_throws InexactError pm1[1] = Poly([1.5])
@@ -169,3 +169,52 @@ U,H = hermite(p)
 @test isapprox(p*U, HT)
 @test isapprox(H, HT)
 @test isapprox(U, UT)
+
+# colred
+s = variable("s")
+
+# example 1 from "A Fortran 77 package for column reduction of polynomial matrices" Geurts, A.J. Praagman, C., 1998
+p = PolyMatrix([s^4+6s^3+13s^2+12s+4 -s^3-4s^2-5s-2; zero(s) s+2])
+U₀ = PolyMatrix([one(s) zero(s); s+2 one(s)])
+R₀ = PolyMatrix([zero(s) -(s^3+4s^2+5s+2); s^2+4s+4 s+2])
+R,U = colred(p)
+@test isapprox(R, R₀)
+@test isapprox(U, U₀)
+@test isapprox(p*U, R)
+
+R,U = rowred(p.')
+@test isapprox(R, R₀.')
+@test isapprox(U, U₀.')
+@test isapprox(PolyMatrix(U*p.'), R)
+
+# example 2 from "A Fortran 77 package for column reduction of polynomial matrices" Geurts, A.J. Praagman, C., 1998
+p = PolyMatrix([s^4 s^2 s^6+1; s^2 one(s) s^4; one(s) zero(s) one(s)])
+U₀ = PolyMatrix([one(s) zero(s); s+2 one(s)])
+R₀ = PolyMatrix([zero(s) -(s^3+4s^2+5s+2); s^2+4s+4 s+2])
+#R,U = colred(p)       # TODO this should work ?!
+#@test isapprox(p*U, R)
+#@test degree(R) == 0
+
+# R,U = rowred(p.')
+#@test isapprox(PolyMatrix(U*p.'), R)
+
+# example 3 from "A Fortran 77 package for column reduction of polynomial matrices" Geurts, A.J. Praagman, C., 1998
+ϵ = 0.001
+p = PolyMatrix([s^3+s^2 ϵ*s+1 one(s); 2s^2 -one(s) -one(s); 3s^2 one(s) one(s)])
+R,U = colred(p)
+@test isapprox(p*U, R)
+
+R,U = rowred(p.')
+@test isapprox(PolyMatrix(U*p.'), R)
+
+# example 4 from "A Fortran 77 package for column reduction of polynomial matrices" Geurts, A.J. Praagman, C., 1998
+ϵ = e-8
+p = PolyMatrix([s^3+s^2+2s+1 ϵ*s^2+2s+3 s^2+s+1   s-1;
+                s-1          -s+2       2s^2+s-1  2s+1;
+                s+3          2s-1       -s^2-2s+1 -s-2;
+                one(s)       -one(s)    3s+1       3*one(s)])
+#R,U = colred(p) # TODO this should work ?!
+# @test isapprox(p*U, R)
+
+#R,U = rowred(p.')
+#@test isapprox(PolyMatrix(U*p.'), R)
