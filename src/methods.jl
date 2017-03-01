@@ -180,5 +180,17 @@ function isapprox{T1,M1,V,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,Val{V},N}, n
 end
 isapprox{T1,M1,V,N,M2<:AbstractArray}(n::M2, p1::PolyMatrix{T1,M1,Val{V},N}) = (p1 == n)
 
+function rank{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
+  d = degree(p)+1
+  # copy all elements into three-dimensional matrix
+  A = zeros(size(p)...,d)
+  for (k,v) in coeffs(p)
+    A[:,:,k+1] = v
+  end
+  B = fft(A,3)
+  a = [rank(B[:,:,k]) for k = 1:d] # rank evaluated at fft frequencies
+  return maximum(a)
+end
+
 summary{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}) =
   string(Base.dims2string(p.dims), " PolyArray{$T,$N}")

@@ -1,11 +1,11 @@
 """
-    hermite(p, iterative::Bool=true, dᵤ) -> U, H
+    hermite(p, iterative::Bool=true, dᵤ) -> H, U
 
 Hermite form of a Polynomial Matrix.
-The method returns unimodular `U` and `H` such that `p U = H`, where `H` is
+The method returns unimodular `H` and `U` such that `p U = H`, where `H` is
 in Hermite form of `p`.
 
-By default `p` is triangularized using the iterative [version 3'][1] (see `triang`).
+By default `p` is triangularized using the iterative [version 3'][1] (see `ltriang`).
 The triangular form is subsequently brought into Hermite form using the Euclidian
 algorithm.
 
@@ -23,7 +23,7 @@ U,H = hermite(p)
         no. 3, Mar. 1999.
 """
 function hermite{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
-  U,L,d = _triang(p, iterative, dᵤ)
+  L,U,d = _ltriang(p, iterative, dᵤ)
   n,m   = size(p)
 
   # scale diagonal elements first
@@ -44,15 +44,15 @@ function hermite{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, d
   U = U*U2
   L = L*U2
 
-  SL = _unshift(L,d)
-  return PolyMatrix(U, (m,m), V; reverse=true), PolyMatrix(SL, (n,m), V; reverse=true)
+  Lᵣ = _unshift(L,d)
+  return PolyMatrix(Lᵣ, (n,m), V; reverse=true), PolyMatrix(U, (m,m), V; reverse=true)
 end
 
 """
-    triang(p, iterative::Bool=true, dᵤ) -> U, L
+    ltriang(p, iterative::Bool=true, dᵤ) -> L, U
 
 Polynomial Matrix triangularization based on Sylvester matrix [method 3][1].
-The method returns unimodular `U` and `L` such that `p U = L`, where `L` is lower triangular.
+The method returns unimodular `L` and `U` such that `p U = L`, where `L` is lower triangular.
 
 By default the iterative [version 3'][1] is used. If `iterative` is to `false`,
 the [method 3][1] tries to triangularize `p` with a reduction matrix of degree `dᵤ`.
@@ -64,7 +64,8 @@ Note that not necessarily the hermite form is returned (see `hermite`).
 ```julia
 julia> s = variable("s")
 p = PolyMatrix([s-1 s^2-1; 2 2s+2; 0 3])
-U = triang(p)
+L,U = ltriang(p)
+L
 3x1 Array{Int64,2}:
   Poly(-0.816497 + 0.408248⋅s)  Poly(-0.57735 - 0.57735⋅s)
   Poly(-0.408248)               Poly(0.57735)
@@ -76,11 +77,22 @@ U = triang(p)
         Triangularization" IEEE Transactions on Automatic Control, vol. 44,
         no. 3, Mar. 1999.
 """
-function triang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
-  U,L,d = _triang(p, iterative, dᵤ)
+function ltriang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
   n,m = size(p)
+  if n < m || rank(p) < m
+    pₑ = PolyMatrix(vcat(p,eye(m)))
+  else
+    pₑ = p
+  end
+  L,U,d = _ltriang(pₑ, iterative, dᵤ)
   SL = _unshift(L,d)
-  return PolyMatrix(U, (m,m), V; reverse=true), PolyMatrix(SL, (n,m), V; reverse=true)
+  L  = SL[1:n*(d+1),1:m]
+  return PolyMatrix(L, (n,m), V; reverse=true), PolyMatrix(U, (m,m), V; reverse=true)
+end
+
+function rtriang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
+  L,U = ltriang(p.', iterative, dᵤ)
+  return L.', U.'
 end
 
 function _unshift(L::AbstractMatrix,d::Int)
@@ -95,7 +107,7 @@ function _unshift(L::AbstractMatrix,d::Int)
   return SL
 end
 
-function _triang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
+function _ltriang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
   # allow user defined dᵤ
   if !iterative && dᵤ < 0
     dᵤ = _mindegree(p)
@@ -109,7 +121,8 @@ function _triang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, d
   ϵ = sqrt(n)*sqrt(m)*d*1e-16
   T = float(T1)
   # construct row permuted sylvester matrix
-  Rd = zeros(T, n*(d+1), m*(dᵤ+1))
+  mₛ = m*(dᵤ+1)
+  Rd = zeros(T, n*(d+1), mₛ)
   for (k,v) in coeffs(p)
     for i in 0:n-1, j in 0:dᵤ
       Rd[n*(d+1)-i*(d+1)-k-dᵤ+j, j*m+(1:m)] = v[n-i,:]
@@ -118,44 +131,87 @@ function _triang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, d
   # should be changed when support for 0.4 drops (lq not in 0.4)
   q,L = qr(Rd.')
   L   = L'
-  U   = q
+  U   = q'
 
-  Σb = zeros(Int,m*(dᵤ+1))
-  for i in 1:m*(dᵤ+1)
-    # TODO if index is zero p is not of full rank.
-    # Should we call the method with Identity appended?
-    Σb[i] = findfirst(x->abs(x) > ϵ, L[:,i])
-    L[1:Σb[i]-1,i] = zeros(T, Σb[i]-1)
+  triangularshape = false
+  j = 1
+  Σb = zeros(Int,mₛ)
+  while !triangularshape && j < 2mₛ
+    for i in 1:mₛ
+      # TODO if index is zero p is not of full rank.
+      # Should we call the method with Identity appended?
+      Σb[i] = findfirst(x->abs(x) > ϵ, L[:,i])
+      L[1:Σb[i]-1,i] = zeros(T, Σb[i]-1)
+    end
+
+    # sort in decreasing order
+    v = sortperm(Σb)
+    U2 = zeros(T, mₛ, mₛ)
+    for j in 1:mₛ
+      U2[j,v[j]] = one(T)
+    end
+    L = L*U2.'
+    U = U2*U
+    Σb = Σb[v]
+
+    # check triangular shape
+    i = 2
+    triangularshape = true
+    while i <= mₛ
+      if Σb[i] == Σb[i-1]
+        qi,Li = qr(L[Σb[i]:end,i-1:end]')
+        U[i-1:end,:]         = qi.'*U[i-1:end,:]
+        L[Σb[i]:end,i-1:end] = Li'
+        triangularshape = false
+      end
+      i += 1
+    end
+    j += 1
   end
 
   C = [zeros(Int,0) for i in 1:n]
   # calculate index sets
-  for k in eachindex(Σb)
-    σ    = Σb[k]
+  for j in eachindex(Σb)
+    σ    = Σb[j]
     it,r = divrem(σ, d+1)
     i    = r > 0 ? it+1 : it
-    push!(C[i], k)
+    push!(C[i], j)
   end
+
+  # The following line is suggested by testing and not by the paper ?!
+  # It handles cases where the first rows in the
+  # triangular form are zero
+  Σb = Σb - Σb[1]+1
 
   Σ = zeros(Int,0)
   for i in 1:m*(dᵤ+1)
     if Σb[i] > n
-      break
+      continue
     end
     if !isempty(C[Σb[i]])
       push!(Σ,i)
     end
   end
 
+  Uₜ = U.'
   if length(Σ) < m
-    if iterative
-      return _triang(p, iterative, dᵤ+1)
+    if iterative && dᵤ < _mindegree(p)
+      return _ltriang(p, iterative, dᵤ+1)
     else
-      throw(ErrorException("triang: failed to triangularize"))
+      throw(ErrorException("ltriang: failed to triangularize"))
     end
   else
     k = [maximum(C[i]) for i in Σ]
-    return U[:,k], L[:,k], d
+    Uᵣ = Uₜ[:,k]
+    Lᵣ = L[:,k]
+    # truncate accorting to ϵ
+    for i in eachindex(Uᵣ)
+      Uᵣ[i] = abs(Uᵣ[i]) > ϵ ? Uᵣ[i] : zero(T)
+    end
+    for i in eachindex(Lᵣ)
+      Lᵣ[i] = abs(Lᵣ[i]) > ϵ ? Lᵣ[i] : zero(T)
+    end
+    return Lᵣ, Uᵣ, d
   end
 end
 
@@ -323,7 +379,7 @@ function colred{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
     end
 
     # Update unimodular transformation matrix U
-    U = U*PolyMatrix(Utemp,(num_col,num_col), V)
+    U = U*PolyMatrix(Utemp, (num_col,num_col), V)
 
     # Reset collection indN
     fill!(indN, 0)
@@ -467,7 +523,7 @@ function rowred{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
     end
 
     # Update unimodular transformation matrix U
-    U = PolyMatrix(Utemp,(num_row,num_row), V)*U
+    U = PolyMatrix(Utemp, (num_row,num_row), V)*U
 
     # Reset collection indN
     fill!(indN, 0)

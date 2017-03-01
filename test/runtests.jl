@@ -148,27 +148,35 @@ t1 = adj1*pm1
 # triangularization
 s = variable("s")
 p = PolyMatrix([s-1 s^2-1; 2*one(s) 2s+2; zero(s) 3*one(s)])
-U,L = triang(p, false, 1)
-LT = PolyMatrix([-1.225s+1.225 zero(s); -2.450*one(s) zero(s); -1.225*one(s) 1.732*one(s)])
-@test isapprox(p*U, LT; rtol=1e-3)
-@test isapprox(L, LT; rtol=1e-3)
+L,U = ltriang(p, false, 1)
+L₀ = PolyMatrix([-1.225s+1.225 zero(s); -2.450*one(s) zero(s); -1.225*one(s) 1.732*one(s)])
+@test isapprox(p*U, L₀; rtol=1e-3)
+@test isapprox(L, L₀; rtol=1e-3)
 @test isapprox(p*U, L)
 
-U,L = triang(p)
-@test isapprox(p*U, LT; rtol=1e-3)
-@test isapprox(L, LT; rtol=1e-3)
+R,U = rtriang(p.', false, 1)
+@test isapprox(R.', L₀; rtol=1e-3)
+@test isapprox(PolyMatrix(U*p.'), R)
+
+L,U = ltriang(p)
+@test isapprox(p*U, L₀; rtol=1e-3)
+@test isapprox(L, L₀; rtol=1e-3)
 @test isapprox(p*U, L)
+
+R,U = rtriang(p.')
+@test isapprox(R.', L₀; rtol=1e-3)
+@test isapprox(PolyMatrix(U*p.'), R)
 
 # hermite
 s = variable("s")
 p = PolyMatrix([-s^3-2s^2+1 -(s+1)^2; (s+2)^2*(s+1) zero(s)])
-HT = PolyMatrix([s+1 zero(s); (s+2)^2*(s+1) (s+2)^2*(s+1)^2])
-UT = PolyMatrix([one(s) s+1; -s -s^2-s+1])
+H₀ = PolyMatrix([s+1 zero(s); (s+2)^2*(s+1) (s+2)^2*(s+1)^2])
+U₀ = PolyMatrix([one(s) s+1; -s -s^2-s+1])
 
-U,H = hermite(p)
-@test isapprox(p*U, HT)
-@test isapprox(H, HT)
-@test isapprox(U, UT)
+H,U = hermite(p)
+@test isapprox(p*U, H₀)
+@test isapprox(H, H₀)
+@test isapprox(U, U₀)
 
 # colred
 s = variable("s")
@@ -218,3 +226,31 @@ p = PolyMatrix([s^3+s^2+2s+1 ϵ*s^2+2s+3 s^2+s+1   s-1;
 
 #R,U = rowred(p.')
 #@test isapprox(PolyMatrix(U*p.'), R)
+
+# left2right matrix fractional descriptions
+s = variable("s")
+Nₗ = PolyMatrix([s^2 zero(s); -4s s])
+Dₗ = PolyMatrix([s^3+2s^2-1 s+1; -5s^2-13s-8 (s+1)*(s+4)])
+Nᵣ = PolyMatrix([-s^2 -s; zero(s) -s])
+Dᵣ = PolyMatrix([-s^3-2s^2+1 -(s+1)^2; (s+2)^2*(s+1) zero(s)])
+
+rmfd = PolyMatrix(vcat(Dᵣ,Nᵣ))
+lmfd = PolyMatrix(hcat(-Nₗ, Dₗ))
+
+# verify that example is correct.
+@test vecnorm(lmfd*rmfd) ≈ 0
+
+L,U = ltriang(PolyMatrix(vcat(lmfd, eye(4))))
+
+N = U[3:4,3:4]
+D = U[1:2,3:4]
+
+# compare hermite form
+Dₕ,U = hermite(D)
+Nₕ = N*U
+
+D₀,U = hermite(Dᵣ)
+N₀ = Nᵣ*U
+
+isapprox(Dₕ,D₀)
+isapprox(Nₕ,N₀)
