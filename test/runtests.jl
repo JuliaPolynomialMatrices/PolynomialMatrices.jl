@@ -240,7 +240,7 @@ lmfd = PolyMatrix(hcat(-Nₗ, Dₗ))
 # verify that example is correct.
 @test vecnorm(lmfd*rmfd) ≈ 0
 
-L,U = ltriang(PolyMatrix(vcat(lmfd, eye(4))))
+L,U = ltriang(lmfd)
 
 N = U[3:4,3:4]
 D = U[1:2,3:4]
@@ -252,5 +252,5 @@ Nₕ = N*U
 D₀,U = hermite(Dᵣ)
 N₀ = Nᵣ*U
 
-isapprox(Dₕ,D₀)
-isapprox(Nₕ,N₀)
+@test isapprox(Dₕ,D₀)
+@test isapprox(Nₕ,N₀)
