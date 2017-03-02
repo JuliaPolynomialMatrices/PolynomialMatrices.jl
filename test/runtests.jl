@@ -254,3 +254,29 @@ N₀ = Nᵣ*U
 
 @test isapprox(Dₕ,D₀)
 @test isapprox(Nₕ,N₀)
+
+rmfd2 = PolyMatrix(vcat(-Dᵣ,Nᵣ))
+R,U = rtriang(rmfd2,false)
+
+N = U[3:4,1:2]
+D = U[3:4,3:4]
+@test isapprox(N*Dᵣ,D*Nᵣ)
+
+# try to get back rft from obtained lft
+lmfd2 = PolyMatrix(hcat(-N,D))
+
+@test vecnorm(lmfd2*rmfd) < 1e-14
+L,U = ltriang(lmfd2)
+
+N = U[3:4,3:4]
+D = U[1:2,3:4]
+
+# compare hermite form
+Dₕ,U = hermite(D)
+Nₕ = N*U
+
+D₀,U = hermite(Dᵣ)
+N₀ = Nᵣ*U
+
+@test isapprox(Dₕ,D₀)
+@test isapprox(Nₕ,N₀)

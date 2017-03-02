@@ -85,8 +85,7 @@ function ltriang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, d
     pₑ = p
   end
   L,U,d = _ltriang(pₑ, iterative, dᵤ)
-  SL = _unshift(L,d)
-  L  = SL[1:n*(d+1),1:m]
+  L = _unshift(L[1:n*(d+1),1:m],d)
   return PolyMatrix(L, (n,m), V; reverse=true), PolyMatrix(U, (m,m), V; reverse=true)
 end
 
