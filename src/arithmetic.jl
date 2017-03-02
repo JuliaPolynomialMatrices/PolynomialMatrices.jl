@@ -93,6 +93,36 @@ function *{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2
   return r
 end
 
+function mul{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2,Val{V},N})
+  size(p1,2) == size(p2,1) || error("incompatible sizes")
+  PMcheck(p1,p2)
+  T = promote_type(T1,T2)
+
+  n  = size(p1,1)
+  m  = size(p2,2)
+  dn = degree(p1)+degree(p2)+1
+  # copy all elements into three-dimensional matrices
+  A1 = similar(dims->zeros(T,dims), (indices(p1)..., dn))
+  for (k,v) in coeffs(p1)
+    A1[:,:,k+1] = v
+  end
+  A2 = similar(dims->zeros(T,dims), (indices(p2)..., dn))
+  for (k,v) in coeffs(p2)
+    A2[:,:,k+1] = v
+  end
+  # take fft and evaluate determinant at each interpolation point
+  B1 = fft(A1,3)
+  B2 = fft(A2,3)
+
+  a = zeros(eltype(B1),n,m,dn)
+  @inbounds @simd for k in 1:dn
+    a[:,:,k] += B1[:,:,k]*B2[:,:,k]
+  end
+  # interpolate using fft
+  ar = _truncate(T,ifft(a,3))
+  return PolyMatrix(ar,V)
+end
+
 function *{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V1},N}, p2::PolyMatrix{T2,M2,Val{V2},N})
   warn("p1≈p2: `p1` ($T1,$V1) and `p2` ($T2,$V2) have different variables")
   throw(DomainError())
