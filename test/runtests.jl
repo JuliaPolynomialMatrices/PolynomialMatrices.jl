@@ -143,7 +143,7 @@ pm1 = PolyMatrix(m)
 
 det1, adj1 = inv(pm1)
 t1 = adj1*pm1
-@test norm(t1[2,1])/norm(t1[1,1]) < eps(Float64)
+@test norm(t1[2,1])/norm(t1[1,1]) < Base.rtoldefault(Float64)
 
 # triangularization
 s = variable("s")
