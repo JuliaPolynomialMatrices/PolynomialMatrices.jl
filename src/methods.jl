@@ -8,7 +8,7 @@ length{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})      = prod(size(p))
 start{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})       = 1
 next{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, state) = p[state], state+1
 done{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, state) = state > length(p)
-linearindexing{T<:PolyMatrix}(::Type{T})     = Base.LinearFast()
+linearindexing{T<:PolyMatrix}(::Type{T})          = Base.LinearFast()
 eltype{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})      = Poly{T}
 vartype{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})     = V
 
@@ -16,11 +16,11 @@ vartype{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})     = V
       variable(p::PolyMatrix)
   return variable of `p` as a `Poly` object.
 """
-variable{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}) = variable(T, V)
+variable{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}) = variable(T, Val{V})
 
 # Copying
 function copy{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
-  r = PolyMatrix( SortedDict(Dict{Int,M}()), size(p), V)
+  r = PolyMatrix( SortedDict(Dict{Int,M}()), size(p), Val{V})
   for (k,v) in coeffs(p)
     r.coeffs[k] = copy(v)
   end
@@ -30,7 +30,7 @@ end
 # getindex
 function getindex{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, i::Int)
   @compat @boundscheck checkbounds(p, i)
-  r = Poly([v[i] for (k,v) in p.coeffs],V)
+  r = Poly([v[i] for (k,v) in p.coeffs], V)
   return r
 end
 
@@ -80,7 +80,7 @@ coeffs(p::PolyMatrix) = p.coeffs
 degree{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})  = last(coeffs(p))[1]
 
 function transpose{T,M<:AbstractMatrix,V,N}(p::PolyMatrix{T,M,Val{V},N})
-  r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), V)
+  r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), Val{V})
   for (k,v) in p.coeffs
     r.coeffs[k] = transpose(v)
   end
@@ -92,7 +92,7 @@ function ctranspose{T1,M1,V,N}(p::PolyMatrix{T1,M1,Val{V},N})
   k1,v1 = first(c)
   vr    = ctranspose(v1)
   M     = typeof(vr)
-  r     = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p), V)
+  r     = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p), Val{V})
   for (k,v) in c
     r.coeffs[k] = ctranspose(v)
   end
