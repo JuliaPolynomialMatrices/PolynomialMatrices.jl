@@ -13,7 +13,7 @@ function +{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2
   k2, v2 = first(c2)
   vr     = v1+v2
   M      = typeof(vr)
-  r      = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p1), V)
+  r      = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p1), Val{V})
 
   cr  = coeffs(r)
   sᵢ  = intersect(keys(c1),keys(c2))
@@ -36,8 +36,8 @@ function +{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V1},N}, p2::PolyMatrix{
   throw(DomainError())
 end
 
-+{T,M,V,N}(p1::PolyMatrix{T,M,Val{V},N}, p2::AbstractArray) = p1 + PolyMatrix(p2, V)
-+{T,M,V,N}(p1::AbstractArray, p2::PolyMatrix{T,M,Val{V},N}) = PolyMatrix(p1, V) + p2
++{T,M,V,N}(p1::PolyMatrix{T,M,Val{V},N}, p2::AbstractArray) = p1 + PolyMatrix(p2, Val{V})
++{T,M,V,N}(p1::AbstractArray, p2::PolyMatrix{T,M,Val{V},N}) = PolyMatrix(p1, Val{V}) + p2
 
 function -{T1,M1,V,N}(p::PolyMatrix{T1,M1,Val{V},N})
   # figure out return type
@@ -45,7 +45,7 @@ function -{T1,M1,V,N}(p::PolyMatrix{T1,M1,Val{V},N})
   k1,v1 = first(c)
   vr    = -v1
   M     = typeof(vr)
-  r     = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p), V)
+  r     = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p), Val{V})
   for (k,v) in c
     insert!(coeffs(r), k, -coeffs(p)[k])
   end
@@ -58,9 +58,12 @@ function -{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V1},N}, p2::PolyMatrix{
   throw(DomainError())
 end
 
--{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::AbstractArray) = p1 - PolyMatrix(p2, V)
--{T1,M1,V,N}(p1::AbstractArray, p2::PolyMatrix{T1,M1,Val{V},N}) = PolyMatrix(p1, V) - p2
+-{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::AbstractArray) = p1 - PolyMatrix(p2, Val{V})
+-{T1,M1,V,N}(p1::AbstractArray, p2::PolyMatrix{T1,M1,Val{V},N}) = PolyMatrix(p1, Val{V}) - p2
 
+# heuristic used below was found by benchmarking
+# (number of matrix multiplications of _mul is length(c1)*length(c2)
+# (number of matrix multiplications of _mulfft is degree(p1)+degree(p2)
 function *{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2,Val{V},N})
   size(p1,2) == size(p2,1) || error("incompatible sizes")
   PMcheck(p1,p2)
@@ -68,17 +71,29 @@ function *{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2
   # figure out return type
   c1     = coeffs(p1)
   c2     = coeffs(p2)
+  if length(c1)*length(c2) > 5*(degree(p1)+degree(p2))
+    return _mulfft(p1,p2)
+  else
+    return _mul(p1,p2)
+  end
+end
+
+function _mul{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2,Val{V},N})
+  # figure out return type
+  c1     = coeffs(p1)
+  c2     = coeffs(p2)
   k1, v1 = first(c1)
   k2, v2 = first(c2)
   vr     = v1*v2
+
   M      = typeof(vr)
-  r      = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(vr), V)
+  r      = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(vr), Val{V})
 
   # find all new powers k1+k2 and corresponding k1, k2
-  klist = Dict{Int,Vector{Tuple}}()
+  klist = Dict{Int,Vector{Tuple{Int,Int}}}()
   for k1 in keys(c1)
     for k2 in keys(c2)
-      klist[k1+k2] = push!(get(klist,k1+k2, Vector{Tuple}()), tuple(k1,k2))
+      klist[k1+k2] = push!(get(klist,k1+k2, Vector{Tuple{Int,Int}}()), tuple(k1,k2))
     end
   end
 
@@ -93,24 +108,22 @@ function *{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2
   return r
 end
 
-function mul{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2,Val{V},N})
-  size(p1,2) == size(p2,1) || error("incompatible sizes")
-  PMcheck(p1,p2)
+function _mulfft{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,M2,Val{V},N})
   T = promote_type(T1,T2)
 
   n  = size(p1,1)
   m  = size(p2,2)
   dn = degree(p1)+degree(p2)+1
   # copy all elements into three-dimensional matrices
-  A1 = similar(dims->zeros(T,dims), (indices(p1)..., dn))
+  A1 = zeros(T, size(p1)..., dn)
   for (k,v) in coeffs(p1)
     A1[:,:,k+1] = v
   end
-  A2 = similar(dims->zeros(T,dims), (indices(p2)..., dn))
+  A2 = zeros(T, size(p2)..., dn)
   for (k,v) in coeffs(p2)
     A2[:,:,k+1] = v
   end
-  # take fft and evaluate determinant at each interpolation point
+  # take fft and evaluate multiplication at each interpolation point
   B1 = fft(A1,3)
   B2 = fft(A2,3)
 
@@ -120,7 +133,7 @@ function mul{T1,M1,V,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::PolyMatrix{T2,
   end
   # interpolate using fft
   ar = _truncate(T,ifft(a,3))
-  return PolyMatrix(ar,V)
+  return PolyMatrix(ar, Val{V})
 end
 
 function *{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V1},N}, p2::PolyMatrix{T2,M2,Val{V2},N})
@@ -128,8 +141,8 @@ function *{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V1},N}, p2::PolyMatrix{
   throw(DomainError())
 end
 
-*{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::AbstractArray) = p1 * PolyMatrix(p2, V)
-*{T1,M1,V,N}(p1::AbstractArray, p2::PolyMatrix{T1,M1,Val{V},N}) = PolyMatrix(p1, V) * p2
+*{T1,M1,V,N}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::AbstractArray) = p1 * PolyMatrix(p2, Val{V})
+*{T1,M1,V,N}(p1::AbstractArray, p2::PolyMatrix{T1,M1,Val{V},N}) = PolyMatrix(p1, Val{V}) * p2
 
 # determinant
 function det{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
@@ -146,7 +159,7 @@ function det{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
   a = [det(B[:,:,k]) for k = 1:dn]
   # interpolate using fft
   ar = _truncate(T,ifft(a))
-  return Poly(ar,V)
+  return Poly(ar, size(ar), Val{V})
 end
 
 function _truncate{T<:Real,T2}(::Type{T}, a::AbstractArray{T2})
@@ -172,7 +185,7 @@ function inv{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
   B = fft(A,3)
   a = [det(B[:,:,k]) for k = 1:dn]
   ar = _truncate(T,ifft(a))
-  rdet = Poly(ar,V)
+  rdet = Poly(ar, V)
 
   v2  = zeros(B)
   for k in 1:dn
@@ -186,7 +199,7 @@ function inv{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
   end
   r = _truncate(T, ifft(v2,3))
 
-  return rdet, PolyMatrix(r, size(r), V)
+  return rdet, PolyMatrix(r, size(r), Val{V})
 end
 
 function _detrange(i,n)

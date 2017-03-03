@@ -10,10 +10,16 @@ immutable PolyMatrix{T,M,V,N} <: AbstractArray{Polynomials.Poly{T},N}
   coeffs::SortedDict{Int,M,ForwardOrdering}
   dims::NTuple{N,Int}
 
-  @compat function (::Type{PolyMatrix}){M,N}(
-      coeffs::SortedDict{Int,M,ForwardOrdering}, dims::NTuple{N,Int}, var::Symbol=:x)
+  # @compat function (::Type{PolyMatrix}){M,N}(
+  #     coeffs::SortedDict{Int,M,ForwardOrdering}, dims::NTuple{N,Int}, var::Symbol=:x)
+  #   T = eltype(M)
+  #   new{T,M,Val{var},N}(coeffs, dims)
+  # end
+
+  @compat function (::Type{PolyMatrix}){M,N,V}(
+      coeffs::SortedDict{Int,M,ForwardOrdering}, dims::NTuple{N,Int}, ::Type{Val{V}})
     T = eltype(M)
-    new{T,M,Val{var},N}(coeffs, dims)
+    new{T,M,Val{V},N}(coeffs, dims)
   end
 end
 
@@ -60,17 +66,25 @@ function PolyMatrix{M1<:AbstractArray}(PM::M1)
   end
   var = countnz(PM) > 0 ? PM[findfirst(x -> x != zero(x), PM)].var :
                          Poly(T[]).var       # default to Polys default variable
-  PolyMatrix(c, size(PM), var)
+  PolyMatrix(c, size(PM), Val{@compat Symbol(var)})
 end
 
 # TODO should we simplify these constructors somehow
 # Note: There is now copy in the following constructors
 function PolyMatrix{T<:Number}(A::AbstractArray{T}, var::SymbolLike=:x)
-  return PolyMatrix(A, size(A), @compat Symbol(var))
+  return PolyMatrix(A, size(A), Val{@compat Symbol(var)})
+end
+
+function PolyMatrix{T<:Number, V}(A::AbstractArray{T}, ::Type{Val{V}})
+  return PolyMatrix(A, size(A), Val{V})
 end
 
 # TODO should we support vectors or only matrices
 function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int}, var::SymbolLike=:x)
+  PolyMatrix(A, dims, Val{@compat Symbol(var)})
+end
+
+function PolyMatrix{M<:AbstractArray,V}(A::M, dims::Tuple{Int}, ::Type{Val{V}})
   ny = dims[1]
   dn = div(size(A,1), ny)
   if rem(size(A,1), ny) != 0
@@ -84,10 +98,14 @@ function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int}, var::SymbolLike=:x
     p = A[k*ny+(1:ny)]
     insert!(c, k, p)
   end
-  return PolyMatrix(c, dims, @compat Symbol(var))
+  return PolyMatrix(c, dims, Val{V})
 end
 
 function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int}, var::SymbolLike=:x; reverse::Bool=false)
+  PolyMatrix(A, dims, Val{@compat Symbol(var)}; reverse=reverse)
+end
+
+function PolyMatrix{M<:AbstractArray,V}(A::M, dims::Tuple{Int,Int}, ::Type{Val{V}}; reverse::Bool=false)
   ny = dims[1]
   dn = div(size(A,1), ny)
   if rem(size(A,1), ny) != 0 || size(A,2) != dims[2]
@@ -101,21 +119,25 @@ function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int}, var::SymbolLik
     v = A[idx, :]
     insert!(c, k, v)
   end
-  return PolyMatrix(c, dims, @compat Symbol(var))
+  return PolyMatrix(c, dims, Val{V})
 end
 
 function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int,Int}, var::SymbolLike=:x)
-  if size(A) != dims
+  PolyMatrix(A, dims, Val{@compat Symbol(var)})
+end
+
+function PolyMatrix{M<:AbstractArray,V}(A::M, dims::Tuple{Int,Int,Int}, ::Type{Val{V}})
+  if size(A) != dims && dims[3] < 1
     warn("PolyMatrix: dimensions are not consistent")
     throw(DomainError())
   end
   dn = dims[3]
-  p0 = dn > 0 ? A[:, :, 1] : zeros(eltype(A),dims[1,2])
+  p0 = A[:, :, 1]
   c  = SortedDict(Dict{Int,typeof(p0)}())
   insert!(c, 0, p0)
   for k = 1:dn-1
     p = A[:, :, k+1]
-    insert!(c, k, p)
+    if (sumabs2(p) > 0) insert!(c, k, p) end
   end
-  return PolyMatrix(c, dims[1:2], @compat Symbol(var))
+  return PolyMatrix(c, size(A,1,2), Val{V})
 end
