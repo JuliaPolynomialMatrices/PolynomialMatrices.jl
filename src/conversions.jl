@@ -4,7 +4,7 @@ promote_rule{T1,T2,M2,V,N}(::Type{PolyMatrix{T1,Array{T1,N},Val{V},N}},
 
 function _convert{T1,N,T2,M1,M2,V}(::Type{PolyMatrix{T1,M1,Val{V},N}},
   p::PolyMatrix{T2,M2,Val{V},N})
-  r = PolyMatrix( SortedDict(Dict{Int,AbstractArray{T1,N}}()), size(p), p.var)
+  r = PolyMatrix( SortedDict(Dict{Int,AbstractArray{T1,N}}()), size(p), Val{V})
   for (k,c) in coeffs(p)
     r.coeffs[k] = map(x->convert(T1,x),c)
   end

@@ -45,7 +45,7 @@ function hermite{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, d
   L = L*U2
 
   Lᵣ = _unshift(L,d)
-  return PolyMatrix(Lᵣ, (n,m), V; reverse=true), PolyMatrix(U, (m,m), V; reverse=true)
+  return PolyMatrix(Lᵣ, (n,m), Val{V}; reverse=true), PolyMatrix(U, (m,m), Val{V}; reverse=true)
 end
 
 """
@@ -86,7 +86,7 @@ function ltriang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, d
   end
   L,U,d = _ltriang(pₑ, iterative, dᵤ)
   L = _unshift(L[1:n*(d+1),1:m],d)
-  return PolyMatrix(L, (n,m), V; reverse=true), PolyMatrix(U, (m,m), V; reverse=true)
+  return PolyMatrix(L, (n,m), Val{V}; reverse=true), PolyMatrix(U, (m,m), Val{V}; reverse=true)
 end
 
 function rtriang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
@@ -321,7 +321,7 @@ function colred{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
   p_temp = copy(p)
   c       = p_temp.coeffs          # Dictionary of coefficient matrices of p
   num_col = N < 2 ? 1 : size(p,2)  # Number of columns of p
-  U       = PolyMatrix(eye(T,num_col), V)
+  U       = PolyMatrix(eye(T,num_col), Val{V})
 
   indN    = zeros(Int,num_col)  # Collection of non-zero entries of n
   while true
@@ -378,7 +378,7 @@ function colred{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
     end
 
     # Update unimodular transformation matrix U
-    U = U*PolyMatrix(Utemp, (num_col,num_col), V)
+    U = U*PolyMatrix(Utemp, (num_col,num_col), Val{V})
 
     # Reset collection indN
     fill!(indN, 0)
@@ -464,7 +464,7 @@ function rowred{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
   p_temp  = copy(p)
   c       = coeffs(p_temp)  # Dictionary of coefficient matrices of p
   num_row = size(p,1)      # Number of rows of p
-  U       = PolyMatrix(eye(T,num_row), V)
+  U       = PolyMatrix(eye(T,num_row), Val{V})
 
   indN    = zeros(Int,num_row)  # Collection of non-zero entries of n
   while true
@@ -522,7 +522,7 @@ function rowred{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
     end
 
     # Update unimodular transformation matrix U
-    U = PolyMatrix(Utemp, (num_row,num_row), V)*U
+    U = PolyMatrix(Utemp, (num_row,num_row), Val{V})*U
 
     # Reset collection indN
     fill!(indN, 0)
