@@ -1,18 +1,20 @@
 # PolynomialMatrices
 
-This package is a work in progress to provide univariate polynomial matrix calculations.
+[![Unix][unix-img]][unix-link]
+[![Windows][win-img]][win-link]
+[![Coveralls][ca-img]][ca-link]
+[![Codecov][cc-img]][cc-link]
 
-### Build Status and Code Coverage
-
-# -  Build status: [![Build Status][build-img]][build-link]
-# -  Code coverage: [![Coveralls][ca-img]][ca-link] [![Codecov][cc-img]][cc-link]
-
-[build-img]:  https://travis-ci.org/neveritt/PolynomialMatrices.jl.svg?branch=master
-[build-link]: https://travis-ci.org/neveritt/PolynomialMatrices.jl
-[ca-img]: https://coveralls.io/repos/github/neveritt/PolynomialMatrices.jl/badge.svg?branch=master
+[unix-img]: https://img.shields.io/travis/neveritt/PolynomialMatrices.jl/master.svg?label=unix
+[unix-link]: https://travis-ci.org/neveritt/PolynomialMatrices.jl
+[win-img]: https://img.shields.io/appveyor/ci/neveritt/PolynomialMatrices-jl/master.svg?label=windows
+[win-link]: https://ci.appveyor.com/project/neveritt/PolynomialMatrices-jl/branch/master
+[ca-img]: https://img.shields.io/coveralls/neveritt/PolynomialMatrices.jl/master.svg?label=coveralls
 [ca-link]: https://coveralls.io/github/neveritt/PolynomialMatrices.jl?branch=master
-[cc-img]: https://codecov.io/gh/neveritt/PolynomialMatrices.jl/branch/master/graph/badge.svg
-[cc-link]: https://codecov.io/gh/neveritt/PolynomialMatrices.jl
+[cc-img]: https://img.shields.io/codecov/c/github/neveritt/PolynomialMatrices.jl/master.svg?label=codecov
+[cc-link]: https://codecov.io/gh/neveritt/PolynomialMatrices.jl?branch=master
+
+This package is a work in progress to provide univariate polynomial matrix calculations.
 
 ### Description
 
@@ -43,4 +45,3 @@ Some of the implemented and yet to be implemented functionality
   - [x] triangularization
   - [x] transformation to hermite form
   - [ ] transformation to smith form
-
