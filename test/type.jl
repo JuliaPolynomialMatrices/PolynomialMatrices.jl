@@ -5,6 +5,13 @@ p3  = Poly([2,3,4])
 m   = [p1 p2; p2 p1]
 pm1 = PolyMatrix(m)
 
+d = Dict(0=>[1 2;2 1], 1=>[0 1;1 0], 2=>[0 3;3 0])
+@test pm1 == PolyMatrix(d)
+@test_throws DomainError PolyMatrix(Dict{Int,Matrix{Int}}())
+
+d = Dict(0=>[1 2;2 1], 1=>[0 1;1 0; 0 0])
+@test_throws DomainError PolyMatrix(d)
+
 degreepm2 = 8
 ny  = 2
 nu  = 2

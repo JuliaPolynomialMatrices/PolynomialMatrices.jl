@@ -34,6 +34,26 @@ end
 end
 
 # Outer constructor
+function PolyMatrix{M<:AbstractArray}(d::Dict{Int,M}, var::SymbolLike=:x)
+  PolyMatrix(d, Val{@compat Symbol(var)})
+end
+
+function PolyMatrix{M<:AbstractArray,V}(d::Dict{Int,M}, var::Type{Val{V}})
+  if length(d) ≤ 0
+    warn("PolyMatrix: lengt(d) == 0")
+    throw(DomainError())
+  end
+  c = SortedDict(d)
+  n,m = size(first(c)[2])
+  for (k,v) in c
+    if size(v) != (n,m)
+      warn("PolyMatrix: size of elements not consistent")
+      throw(DomainError())
+    end
+  end
+  PolyMatrix(c, (n,m), Val{V})
+end
+
 function PolyMatrix{M1<:AbstractArray}(PM::M1)
   eltype(M1) <: Poly   || error("PolyMatrix: Matrix of Polynomials expected, try PolyMatrix(A, dims[, var])")
   length(size(PM)) <= 2 || error("PolyMatrix: higher order arrays not supported at this point")
