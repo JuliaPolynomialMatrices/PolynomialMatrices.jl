@@ -36,6 +36,7 @@ s = variable("s")
 
 # example 1 from "A Fortran 77 package for column reduction of polynomial matrices" Geurts, A.J. Praagman, C., 1998
 p = PolyMatrix([s^4+6s^3+13s^2+12s+4 -s^3-4s^2-5s-2; zero(s) s+2])
+p2 = PolyMatrix([s+4 -s; zero(s) s+2])
 U₀ = PolyMatrix([one(s) zero(s); s+2 one(s)])
 R₀ = PolyMatrix([zero(s) -(s^3+4s^2+5s+2); s^2+4s+4 s+2])
 R,U = colred(p)
@@ -43,10 +44,16 @@ R,U = colred(p)
 @test isapprox(U, U₀)
 @test isapprox(p*U, R)
 
+R1,R2 = colred(p, p2)
+@test isapprox(R, R1)
+
 R,U = rowred(p.')
 @test isapprox(R, R₀.')
 @test isapprox(U, U₀.')
 @test isapprox(PolyMatrix(U*p.'), R)
+
+R1,R2 = rowred(p.', p2.')
+@test isapprox(R, R1)
 
 # example 2 from "A Fortran 77 package for column reduction of polynomial matrices" Geurts, A.J. Praagman, C., 1998
 p = PolyMatrix([s^4 s^2 s^6+1; s^2 one(s) s^4; one(s) zero(s) one(s)])

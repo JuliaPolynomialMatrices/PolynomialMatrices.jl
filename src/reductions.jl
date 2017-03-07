@@ -447,7 +447,17 @@ function colred{T,M1,M2,V,N1,N2}(p1::PolyMatrix{T,M1,Val{V},N1},
 
       # Update coefficient matrices of p2
       for i = 0:k2[col]
-        c2[max_temp-k1[col]+i][:,Nmax] += n[col] / n[Nmax] * c2[i][:,col]
+        if haskey(c2,i)
+          new_key = max_temp-k1[col]+i
+          new_update = n[col] / n[Nmax] * c2[i][:,col]
+          if haskey(c2,new_key)
+            c2[new_key][:,Nmax] += new_update
+          else
+            v2 = zeros(first(c2)[2])
+            v2[:,Nmax] += new_update
+            insert!(c2, new_key, v2)
+          end
+        end
       end
     end
 
@@ -540,8 +550,8 @@ function rowred{T,M1,M2,V,N1,N2}(p1::PolyMatrix{T,M1,Val{V},N1},
 
   p1_temp  = copy(p1)
   p2_temp  = copy(p2)
-  c1       = coeffs(p_temp1)  # Dictionary of coefficient matrices of p1
-  c2       = coeffs(p_temp2)  # Dictionary of coefficient matrices of p2
+  c1       = coeffs(p1_temp)  # Dictionary of coefficient matrices of p1
+  c2       = coeffs(p2_temp)  # Dictionary of coefficient matrices of p2
   num_row  = size(p1,1)      # Number of rows of p1 and p2
 
   indN    = zeros(Int,num_row)  # Collection of non-zero entries of n
@@ -591,7 +601,17 @@ function rowred{T,M1,M2,V,N1,N2}(p1::PolyMatrix{T,M1,Val{V},N1},
 
       # Update coefficient matrices of p2
       for i = 0:k2[row]
-        c2[max_temp-k1[row]+i][Nmax,:] += n[row] / n[Nmax] * c2[i][row,:]
+        if haskey(c2,i)
+          new_key = max_temp-k1[row]+i
+          new_update = n[row] / n[Nmax] * c2[i][row,:]
+          if haskey(c2,new_key)
+            c2[new_key][Nmax,:] += new_update
+          else
+            v2 = zeros(first(c2)[2])
+            v2[Nmax,:] += new_update
+            insert!(c2, new_key, v2)
+          end
+        end
       end
     end
 
