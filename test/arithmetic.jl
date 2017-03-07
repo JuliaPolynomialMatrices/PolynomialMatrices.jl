@@ -1,10 +1,10 @@
 # setup
-p1  = Poly([1.0,2.0,3.5],:s)
-p2  = Poly([2,1.1,3,4],:s)
-p3  = Poly([2,3.1,4,5,7.3],:s)
+p1  = Poly([1,2,3],:s)
+p2  = Poly([2,1,3,4],:s)
+p3  = Poly([2,3,4,5,7],:s)
 m   = [p1 p2; p3 p1]
 pm1 = PolyMatrix(m)
-pm2 = PolyMatrix(m+1)
+pm2 = PolyMatrix(m+1.0)
 pm3 = PolyMatrix(hcat(m,m))
 pm4 = PolyMatrix(eye(2),:x)
 n1  = 1
@@ -12,6 +12,7 @@ n2  = 0.0
 a1  = eye(2,2)
 a2  = eye(2,4)
 v1  = ones(2)
+v2  = ones(4)
 
 # addition
 @test pm1+pm1 == PolyMatrix(2*m)
@@ -55,7 +56,15 @@ v1  = ones(2)
 @test a1*pm1 ≈ PolyMatrix(a1*m)
 @test_throws DomainError a2*pm1
 
+# fft multiplication
+A = zeros(Int,2,2,12)
+for idx in 1:12
+  A[:,:,idx] = eye(2)
+end
+@test eltype(PolyMatrix(A)*PolyMatrix(A)) == Poly{Int}
+
 @test pm1*v1 ≈ PolyMatrix(m*v1)
+@test_throws DomainError pm1*v2
 
 @test (pm1*p1)[1] ≈ m[1]*p1 # Polynomials is problematic
 @test (p1*pm1)[1] ≈ m[1]*p1
@@ -66,7 +75,10 @@ v1  = ones(2)
 # division
 @test (pm1/(2n1))[1] ≈ m[1]/2
 
-# test inverse
-det1, adj1 = inv(pm1)
-t1 = adj1*pm1
-@test norm(t1[2,1])/norm(t1[1,1]) < Base.rtoldefault(Float64)
+# inverse
+det2, adj2 = inv(pm2)
+t2 = adj2*pm2
+@test norm(t2[2,1])/norm(t2[1,1]) < Base.rtoldefault(Float64)
+
+# determinant
+@test typeof(det(pm1)) == Poly{Int}

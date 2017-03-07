@@ -242,8 +242,8 @@ function det{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
   B = fft(A,3)
   a = [det(B[:,:,k]) for k = 1:dn]
   # interpolate using fft
-  ar = _truncate(T,ifft(a))
-  return Poly(ar, size(ar), Val{V})
+  ar = _truncate(T, ifft(a))
+  return Poly(ar, V)
 end
 
 function _truncate{T<:Real,T2}(::Type{T}, a::AbstractArray{T2})
