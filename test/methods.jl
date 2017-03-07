@@ -9,13 +9,19 @@ pm2 = PolyMatrix([p1 p2; p2 p2])
 pm3 = PolyMatrix([p3 p2; p2 p3])
 pm4 = PolyMatrix([p4 p2; p2 p4])
 pm5 = PolyMatrix([p5 p2; p2 p4])
+pm6 = PolyMatrix(eye(2))
+m1  = eye(2)
 
 @test pm1 != pm2 != pm3 != pm4 != pm5
 
 @test !isapprox(pm3,pm4; rtol=0.001)
 @test isapprox(pm3,pm4; rtol=0.1)
 
-!isapprox(pm3,pm4; rtol=0.001)
+@test !isapprox(pm3,pm4; rtol=0.001)
+
+@test isapprox(pm6,m1)
+@test isapprox(m1,pm6)
+@test !isapprox(m1,pm3)
 
 B = [2 2; 2 2]
 C = [1 1; 1 1]

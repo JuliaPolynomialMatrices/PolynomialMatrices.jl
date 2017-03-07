@@ -157,7 +157,7 @@ function isapprox{T1,M1,V1,V2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{V1},N}, p2::Poly
 end
 
 function isapprox{T1,M1,V,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,Val{V},N}, n::M2;
-  rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0, norm::Function=vecnorm)
+  rtol::Real=Base.rtoldefault(T1,eltype(M2)), atol::Real=0, norm::Function=vecnorm)
   d = norm(p1 - n)
   if isfinite(d)
     return d <= atol + rtol*max(norm(p1), norm(n))
@@ -169,10 +169,10 @@ function isapprox{T1,M1,V,N,M2<:AbstractArray}(p1::PolyMatrix{T1,M1,Val{V},N}, n
         isapprox(v, n; rtol=rtol, atol=atol) || return false
         has_zero = true
       else
-        isapprox(v, zeros(v); rtol=rtol, atol=atol) || return false
+        isapprox(v, zeros(v); rtol=rtol, atol=atol, norm=norm) || return false
       end
     end
-    return ifelse(has_zero, true, isapprox(n,zeros(n)))
+    return ifelse(has_zero, true, isapprox(n,zeros(n); rtol=rtol, atol=atol, norm=norm))
   end
 end
 isapprox{T1,M1,V,N,M2<:AbstractArray}(n::M2, p1::PolyMatrix{T1,M1,Val{V},N}) = (p1 == n)
