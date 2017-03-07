@@ -19,9 +19,9 @@ function filt!{H,T,S,M1,M2,O,N,G}(out::AbstractArray{H}, b::PolyMatrix{T,M1,O,N}
       # simple scaling
       out = x*(coeffs(a)[0]\coeffs(b)[0]).'
     else
-     _filt_fir!(out, b, x, si)
-   end
-   return out
+      _filt_fir!(out, b, x, si)
+    end
+    return out
   end
   sz = max(as, bs)
   silen = sz

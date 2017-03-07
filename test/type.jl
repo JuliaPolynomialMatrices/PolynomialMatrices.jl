@@ -24,3 +24,5 @@ A = randn(3,2)
 
 A = randn(3)
 @test PolyMatrix(A, :s) == PolyMatrix(A, Val{:s})
+
+@test pm1(0) == [1 2; 2 1]
