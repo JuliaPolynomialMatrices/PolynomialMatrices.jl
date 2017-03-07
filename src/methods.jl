@@ -1,8 +1,5 @@
 size(p::PolyMatrix) = p.dims
-function size(p::PolyMatrix, i::Int)
-  i > 0 || throw(ArgumentError("size: dimension needs to be positive"))
-  return i ≤ length(p.dims) ? p.dims[i] : 1
-end
+size(p::PolyMatrix, i::Integer) = i ≤ length(p.dims) ? p.dims[i] : 1
 
 length{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})      = prod(size(p))
 start{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})       = 1

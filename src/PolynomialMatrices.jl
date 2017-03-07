@@ -8,7 +8,7 @@ using Compat
 import Polynomials: coeffs, degree, variable
 import Base: start, next, done
 import Base: promote_rule, convert, size, length
-import Base: +, -, *, inv, det
+import Base: +, -, *, /, inv, det
 import Base: getindex, setindex!, linearindexing, eltype
 import Base: copy
 import Base: transpose, ctranspose
