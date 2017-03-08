@@ -5,7 +5,7 @@ end
 
 function filt{T,S,M1,M2,O,N,G}(b::PolyMatrix{T,M1,O,N}, a::PolyMatrix{S,M2,O,N},
   x::AbstractArray{G}, si=_zerosi(b, a, G))
-  filt!(Array(promote_type(T, G, S), size(a,1), size(x,2)), b, a, x, si)
+  filt!(Array{promote_type(T, G, S)}(size(a,1), size(x,2)), b, a, x, si)
 end
 
 function filt!{H,T,S,M1,M2,O,N,G}(out::AbstractArray{H}, b::PolyMatrix{T,M1,O,N},

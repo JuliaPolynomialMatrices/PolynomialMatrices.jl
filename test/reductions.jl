@@ -115,6 +115,8 @@ N₀ = Nᵣ*U
 @test isapprox(Dₕ,D₀)
 @test isapprox(Nₕ,N₀)
 
+@test vecnorm(lmfd*PolyMatrix(vcat(Dₕ,Nₕ))) < 1e-12
+
 rmfd2 = PolyMatrix(vcat(-Dᵣ,Nᵣ))
 R,U = rtriang(rmfd2,false)
 

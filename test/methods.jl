@@ -14,11 +14,10 @@ m1  = eye(2)
 
 @test pm1 != pm2 != pm3 != pm4 != pm5
 
+@test !isapprox(pm2,pm3)
 @test !isapprox(pm3,pm4; rtol=0.001)
 @test isapprox(pm3,pm4; rtol=0.1)
-
 @test !isapprox(pm3,pm4; rtol=0.001)
-
 @test isapprox(pm6,m1)
 @test isapprox(m1,pm6)
 @test !isapprox(m1,pm3)
@@ -39,6 +38,10 @@ PolyB = PolyMatrix(B, (2,2), :s)
 PolyC = PolyMatrix(B, (2,2), :q)
 PolyD = PolyMatrix(C, (2,2), :s)
 
+@test variable(PolyB) == Poly([zero(eltype(B)), one(eltype(B))], vartype(PolyB))
+@test variable(PolyC) == Poly([zero(eltype(B)), one(eltype(B))], vartype(PolyC))
+@test variable(PolyD) == Poly([zero(eltype(C)), one(eltype(C))], vartype(PolyD))
+
 @test PolyB ≠ PolyC && !isequal(PolyB, PolyC)
 @test_throws DomainError PolyB ≈ PolyC
 @test PolyB == PolyD && PolyB ≈ PolyD && !isequal(PolyB, PolyD)
@@ -49,7 +52,7 @@ p2  = Poly([2,1,3])
 pm1 = PolyMatrix([p1 p2; p2 p1])
 pm2 = copy(pm1)
 
-@test isequal(pm1, pm2) && !is(pm1, pm2)
+@test pm1 == pm2 && pm1 ≢ pm2
 
 # test getindex
 p1  = Poly([1],:s)
@@ -58,6 +61,8 @@ p3  = Poly([2,3,4],:s)
 m   = [p1 p2; p2 p1]
 pm1 = PolyMatrix(m)
 degreepm2 = 8
+ny  = 2
+nu  = 2
 A   = randn(ny*(degreepm2+1),nu)
 B   = eye(Float64,2)
 

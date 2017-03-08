@@ -151,7 +151,7 @@ function PolyMatrix{M<:AbstractArray,V}(A::M, dims::Tuple{Int,Int,Int}, ::Type{V
   insert!(c, 0, p0)
   for k = 1:dn-1
     p = A[:, :, k+1]
-    if (sumabs2(p) > zero(eltype(A))) insert!(c, k, p) end
+    if (sum(abs2,p) > zero(eltype(A))) insert!(c, k, p) end
   end
   return PolyMatrix(c, size(A,1,2), Val{V})
 end
