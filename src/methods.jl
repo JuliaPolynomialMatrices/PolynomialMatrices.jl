@@ -5,15 +5,15 @@ length{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})      = prod(size(p))
 start{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})       = 1
 next{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, state) = p[state], state+1
 done{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, state) = state > length(p)
-linearindexing{T<:PolyMatrix}(::Type{T})          = Base.LinearFast()
 eltype{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})      = Poly{T}
 vartype{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})     = V
+@compat Base.IndexStyle(::Type{<:PolyMatrix})     = IndexLinear()
 
 """
       variable(p::PolyMatrix)
   return variable of `p` as a `Poly` object.
 """
-variable{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}) = variable(T, Val{V})
+variable{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}) = variable(T, @compat Symbol(V))
 
 # Copying
 function copy{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
@@ -25,24 +25,63 @@ function copy{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
 end
 
 # getindex
-function getindex{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, i::Int)
+function getindex{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, i::Integer)
   @compat @boundscheck checkbounds(p, i)
-  r = Poly([v[i] for (k,v) in p.coeffs], V)
+  r = Poly([v[i] for (k,v) in coeffs(p)], V)
   return r
+end
+
+function getindex{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, i::Integer, j::Integer)
+  r = Poly([v[i,j] for (k,v) in coeffs(p)], V)
+  return r
+end
+
+function getindex{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, I...)
+  c   = coeffs(p)
+  _,v = first(c)
+  vr  = getindex(v, I...)
+  r   = PolyMatrix(SortedDict(Dict{Int,typeof(vr)}()), size(vr), Val{V})
+  cr  = coeffs(r)
+  for (k,v) in c
+    #if getindex(v, I...) != zeros(getindex(v, I...))
+    insert!(cr, k, getindex(v, I...))
+    #end
+  end
+  r
 end
 
 _PolyMatrix{T,N}(p::Array{Poly{T},N}) = PolyMatrix(p)
 _PolyMatrix{T}(p::Poly{T})            = p
 
-# Hacking AbstractArrays getindex to make sure we return PolyMatrix for non-scalar return types
-function getindex(A::PolyMatrix, I...)
-    r = Base._getindex(linearindexing(A), A, I...)
-    _PolyMatrix(r)
+# setindex!
+function setindex!{T,M,V,N,U}(Pm::PolyMatrix{T,M,Val{V},N}, p::Poly{U}, i::Integer)
+  @compat @boundscheck checkbounds(Pm, i)
+  c = coeffs(p)
+  Pmc = coeffs(Pm)
+  S = Set(eachindex(coeffs(p)))
+  for (k, v) in Pmc
+    if k+1 ∈ S
+      v[i] = c[k+1]
+      delete!(S,k+1)
+    else
+      v[i] = zero(T)
+    end
+    # NOTE should we delete a key if all elements are made zero?
+    # if all(v .== zero(T))
+    #   delete!(Pmc, idx-1)
+    # end
+  end
+  # add keys not previously present in Pm
+  for k in S
+    vk = spzeros(T, Pm.dims...)
+    vk[i] = c[k]
+    insert!(Pmc, k-1, vk)
+  end
 end
 
-# setindex!
-function setindex!{T,M,V,N,U}(Pm::PolyMatrix{T,M,Val{V},N}, p::Poly{U}, i::Int)
-  @compat @boundscheck checkbounds(Pm, i)
+function setindex!{T,M,V,N,U}(Pm::PolyMatrix{T,M,Val{V},N}, p::Poly{U},
+    i::Integer, j::Integer)
+  @compat @boundscheck checkbounds(Pm, i, j)
   c = coeffs(p)
   Pmc = coeffs(Pm)
   S = Set(eachindex(coeffs(p)))

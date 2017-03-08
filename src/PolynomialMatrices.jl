@@ -9,7 +9,7 @@ import Polynomials: coeffs, degree, variable
 import Base: start, next, done
 import Base: promote_rule, convert, size, length
 import Base: +, -, *, /, inv, det
-import Base: getindex, setindex!, linearindexing, eltype
+import Base: getindex, setindex!, eltype
 import Base: copy
 import Base: transpose, ctranspose
 import Base: summary
@@ -29,8 +29,8 @@ export is_col_proper, is_row_proper
 export colred, rowred
 export ltriang, rtriang, hermite
 
-typealias SymbolLike  Union{Symbol,AbstractString,Char}
-typealias ForwardOrdering Base.Order.ForwardOrdering
+const SymbolLike = Union{Symbol,AbstractString,Char}
+const ForwardOrdering = Base.Order.ForwardOrdering
 
 # Include files
 include("type.jl")
