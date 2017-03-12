@@ -1,3 +1,4 @@
+# PolyMatrix and PolyMatrix
 promote_rule{T1,T2,M1,M2,V,N}(::Type{PolyMatrix{T1,M1,Val{V},N}},
   ::Type{PolyMatrix{T2,M2,Val{V},N}}) =
   PolyMatrix{promote_type(T1, T2), promote_type(M1,M2), Val{V}, N}
@@ -21,3 +22,10 @@ end
     return :(_convert(PolyMatrix{T1,M1,Val{V},N}, p::PolyMatrix{T2,M2,Val{V},N}))
   end
 end
+
+# PolyMatrix and AbstractArray
+promote_rule{T1,T2,M1,V,N}(::Type{PolyMatrix{T1,M1,Val{V},N}},
+  ::Type{AbstractArray{T2,N}}) = PolyMatrix{promote_type(T1, T2), M1, Val{V}, N}
+
+convert{T1,T2,M1,V,N}(::Type{PolyMatrix{T1,M1,Val{V},N}},
+  p::AbstractArray{T2,N}) = PolyMatrx(p, size(p), Val{V})

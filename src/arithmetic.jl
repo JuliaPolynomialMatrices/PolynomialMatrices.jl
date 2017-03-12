@@ -108,7 +108,7 @@ function _mulconv{T1,M1,V,N,T2}(p1::PolyMatrix{T1,M1,Val{V},N}, p2::T2)
     for v in klist[k]
       vk += T2 <:Poly ? c1[v[1]]*p2[v[2]] : c1[v[1]]*c2[v[2]]
     end
-    r.coeffs[k] = vk
+    insert!(r.coeffs, k, vk)
   end
   return r
 end
@@ -227,6 +227,48 @@ end
 *{T,M1,V,N,M2<:Number}(p1::M2, p2::PolyMatrix{T,M1,Val{V},N}) = _mul(p2, p1)
 
 /{T,M1,V,N,M2<:Number}(p1::PolyMatrix{T,M1,Val{V},N}, p2::M2) = _mul(p1, 1/p2)
+
+# multiplication with abstractArray
+# transpose
+Base.LinAlg.At_mul_B{T1,M1,V,N1,T2,N2}(p1::PolyMatrix{T1,M1,Val{V},N1},
+  p2::AbstractArray{T2,N2}) = transpose(p1)*p2
+
+Base.LinAlg.A_mul_Bt{T1,M1,V,N1,T2,N2}(p1::PolyMatrix{T1,M1,Val{V},N1},
+  p2::AbstractArray{T2,N2}) = p1*transpose(p2)
+
+Base.LinAlg.At_mul_Bt{T1,M1,V,N1,T2,N2}(p1::PolyMatrix{T1,M1,Val{V},N1},
+  p2::AbstractArray{T2,N2}) = transpose(p1)*transpose(p2)
+
+# ctranspose
+Base.LinAlg.Ac_mul_B{T1,M1,V,N1,T2,N2}(p1::PolyMatrix{T1,M1,Val{V},N1},
+  p2::AbstractArray{T2,N2}) = ctranspose(p1)*p2
+
+Base.LinAlg.A_mul_Bc{T1,M1,V,N1,T2,N2}(p1::PolyMatrix{T1,M1,Val{V},N1},
+  p2::AbstractArray{T2,N2}) = p1*ctranspose(p2)
+
+Base.LinAlg.Ac_mul_Bc{T1,M1,V,N1,T2,N2}(p1::PolyMatrix{T1,M1,Val{V},N1},
+  p2::AbstractArray{T2,N2}) = ctranspose(p1)*ctranspose(p2)
+
+# multiplication between Polynomialmatrices
+# transpose
+Base.LinAlg.At_mul_B{T1,M1,V,N1,T2,M2,N2}(p1::PolyMatrix{T1,M1,Val{V},N1},
+  p2::PolyMatrix{T2,M2,Val{V},N2}) = transpose(p1)*p2
+
+Base.LinAlg.A_mul_Bt{T1,M1,V,N1,T2,M2,N2}(p1::PolyMatrix{T1,M1,Val{V},N1},
+  p2::PolyMatrix{T2,M2,Val{V},N2}) = p1*transpose(p2)
+
+Base.LinAlg.At_mul_Bt{T1,M1,V,N1,T2,M2,N2}(p1::PolyMatrix{T1,M1,Val{V},N1},
+  p2::PolyMatrix{T2,M2,Val{V},N2}) = transpose(p1)*transpose(p2)
+
+# ctranspose
+Base.LinAlg.Ac_mul_B{T1,M1,V,N1,T2,M2,N2}(p1::PolyMatrix{T1,M1,Val{V},N1},
+  p2::PolyMatrix{T2,M2,Val{V},N2}) = ctranspose(p1)*p2
+
+Base.LinAlg.A_mul_Bc{T1,M1,V,N1,T2,M2,N2}(p1::PolyMatrix{T1,M1,Val{V},N1},
+  p2::PolyMatrix{T2,M2,Val{V},N2}) = p1*ctranspose(p2)
+
+Base.LinAlg.Ac_mul_Bc{T1,M1,V,N1,T2,M2,N2}(p1::PolyMatrix{T1,M1,Val{V},N1},
+  p2::PolyMatrix{T2,M2,Val{V},N2}) = ctranspose(p1)*ctranspose(p2)
 
 # determinant
 function det{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})

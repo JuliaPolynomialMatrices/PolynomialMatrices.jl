@@ -7,7 +7,57 @@ next{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, state) = p[state], state+1
 done{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, state) = state > length(p)
 eltype{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})      = Poly{T}
 vartype{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})     = V
+mattype{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})     = M
 @compat Base.IndexStyle(::Type{<:PolyMatrix})     = IndexLinear()
+
+function similar{T,M,V,N,N2}(p::PolyMatrix{T,M,Val{V},N}, dims::NTuple{N2,Int})
+  _,v1 = coeffs(p) |> first
+  vr = zeros(similar(v1, eltype(eltype(p)), dims))
+  r = PolyMatrix(SortedDict(0=>vr), size(vr), Val{V})
+end
+
+function similar{T,M,V,N,S,N2}(p::PolyMatrix{T,M,Val{V},N}, T2::Type{S}=eltype(p),
+  dims::NTuple{N2,Int}=size(p))
+  T2 <: Poly || (warn("similar: expected Type{S}<:Poly"); throw(DomainError))
+  _,v1 = coeffs(p) |> first
+  vr = zeros(similar(v1, eltype(T2), dims))
+  r = PolyMatrix(SortedDict(0=>vr), size(vr), Val{V})
+end
+
+function _matrixofpoly(p::PolyMatrix)
+  [p[i,j] for i in 1:size(p,1), j in 1:size(p,2)]
+end
+
+function Base.vcat{T,M,V,N}(A::PolyMatrix{T,M,Val{V},N}...)
+  mvec  = map(_matrixofpoly, A)
+  mpoly = vcat(mvec...)
+  return PolyMatrix(mpoly, Val{V})
+end
+
+function Base.hcat{T,M,V,N}(A::PolyMatrix{T,M,Val{V},N}...)
+  mvec  = map(_matrixofpoly, A)
+  mpoly = hcat(mvec...)
+  return PolyMatrix(mpoly, Val{V})
+end
+
+# works but is not properly since @inferred do not give correct type
+function Base.cat{T,M,V,N}(catdims, A::PolyMatrix{T,M,Val{V},N}...)
+  mvec  = map(_matrixofpoly, A)
+  mpoly = cat(catdims, mvec...)
+  return PolyMatrix(mpoly, Val{V})
+end
+
+function Base.hvcat{T,M,V,N}(nbc::Integer, A::PolyMatrix{T,M,Val{V},N}...)
+  mvec  = map(_matrixofpoly, A)
+  mpoly = hvcat(nbc, mvec...)
+  return PolyMatrix(mpoly, Val{V})
+end
+
+function Base.hvcat{T,M,V,N,N2}(rows::NTuple{N2,Int}, A::PolyMatrix{T,M,Val{V},N}...)
+  mvec  = map(_matrixofpoly, A)
+  mpoly = hvcat(rows, mvec...)
+  return PolyMatrix(mpoly, Val{V})
+end
 
 """
       variable(p::PolyMatrix)
@@ -25,6 +75,10 @@ function copy{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
 end
 
 # getindex
+function Base.checkbounds{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, I...)
+  checkbounds(first(coeffs(p))[2], I...)
+end
+
 function getindex{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}, i::Integer)
   @compat @boundscheck checkbounds(p, i)
   r = Poly([v[i] for (k,v) in coeffs(p)], V)
@@ -79,7 +133,7 @@ function setindex!{T,M,V,N,U}(Pm::PolyMatrix{T,M,Val{V},N}, p::Poly{U}, i::Integ
   end
 end
 
-function setindex!{T,M,V,N,U}(Pm::PolyMatrix{T,M,Val{V},N}, p::Poly{U},
+function setindex!{T,M,V,U}(Pm::PolyMatrix{T,M,Val{V},2}, p::Poly{U},
     i::Integer, j::Integer)
   @compat @boundscheck checkbounds(Pm, i, j)
   c = coeffs(p)
@@ -87,10 +141,10 @@ function setindex!{T,M,V,N,U}(Pm::PolyMatrix{T,M,Val{V},N}, p::Poly{U},
   S = Set(eachindex(coeffs(p)))
   for (k, v) in Pmc
     if k+1 ∈ S
-      v[i] = c[k+1]
+      v[i,j] = c[k+1]
       delete!(S,k+1)
     else
-      v[i] = zero(T)
+      v[i,j] = zero(T)
     end
     # NOTE should we delete a key if all elements are made zero?
     # if all(v .== zero(T))
@@ -100,8 +154,88 @@ function setindex!{T,M,V,N,U}(Pm::PolyMatrix{T,M,Val{V},N}, p::Poly{U},
   # add keys not previously present in Pm
   for k in S
     vk = spzeros(T, Pm.dims...)
-    vk[i] = c[k]
+    vk[i,j] = c[k]
     insert!(Pmc, k-1, vk)
+  end
+end
+
+function setindex!{T,M,V,N,U}(Pm::PolyMatrix{T,M,Val{V},N}, p::Poly{U},
+    I...)
+  @compat @boundscheck checkbounds(Pm, I...)
+  c = coeffs(p)
+  Pmc = coeffs(Pm)
+  S = Set(eachindex(coeffs(p)))
+  for (k, v) in Pmc
+    if k+1 ∈ S
+      v[I...] = c[k+1]
+      delete!(S,k+1)
+    else
+      v[I...] = zero(T)
+    end
+    # NOTE should we delete a key if all elements are made zero?
+    # if all(v .== zero(T))
+    #   delete!(Pmc, idx-1)
+    # end
+  end
+  # add keys not previously present in Pm
+  for k in S
+    vk = spzeros(T, Pm.dims...)
+    vk[I...] = c[k]
+    insert!(Pmc, k-1, vk)
+  end
+end
+
+# setindex for number
+function setindex!{T,M,V,N,T2<:Number}(Pm::PolyMatrix{T,M,Val{V},N}, p::T2, i::Integer)
+  @compat @boundscheck checkbounds(Pm, i)
+  c = coeffs(Pm)
+  if haskey(c,0)
+    _,v0 = c[0]
+    v0[i] = p
+    # NOTE should we delete a key if all elements are made zero?
+    # if all(v .== zero(T))
+    #   delete!(Pmc, idx-1)
+    # end
+  else
+    v0 = spzeros(T, Pm.dims...)
+    v0[i] = p
+    insert!(c, 0, v0)
+  end
+end
+
+function setindex!{T,M,V,T2<:Number}(Pm::PolyMatrix{T,M,Val{V},2}, p::T2,
+    i::Integer, j::Integer)
+  @compat @boundscheck checkbounds(Pm, i, j)
+  c = coeffs(Pm)
+  if haskey(c,0)
+    v0      = c[0]
+    v0[i,j] = p
+    # NOTE should we delete a key if all elements are made zero?
+    # if all(v .== zero(T))
+    #   delete!(Pmc, idx-1)
+    # end
+  else
+    v0 = spzeros(T, Pm.dims...)
+    v0[i,j] = p
+    insert!(c, 0, v0)
+  end
+end
+
+function setindex!{T,M,V,N,T2<:Number}(Pm::PolyMatrix{T,M,Val{V},N}, p::T2,
+    I...)
+  @compat @boundscheck checkbounds(Pm, I...)
+  c = coeffs(Pm)
+  if haskey(c,0)
+    _,v0 = c[0]
+    v0[I...] = p
+    # NOTE should we delete a key if all elements are made zero?
+    # if all(v .== zero(T))
+    #   delete!(Pmc, idx-1)
+    # end
+  else
+    v0 = spzeros(T, Pm.dims...)
+    v0[I...] = p
+    insert!(c, 0, v0)
   end
 end
 
@@ -118,7 +252,7 @@ degree{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})  = last(coeffs(p))[1]
 function transpose{T,M<:AbstractMatrix,V,N}(p::PolyMatrix{T,M,Val{V},N})
   r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), Val{V})
   for (k,v) in p.coeffs
-    r.coeffs[k] = transpose(v)
+    insert!(coeffs(r), k, transpose(v))
   end
   return r
 end
@@ -130,7 +264,7 @@ function ctranspose{T1,M1,V,N}(p::PolyMatrix{T1,M1,Val{V},N})
   M     = typeof(vr)
   r     = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p), Val{V})
   for (k,v) in c
-    r.coeffs[k] = ctranspose(v)
+    insert!(coeffs(r), k, ctranspose(v))
   end
   return r
 end

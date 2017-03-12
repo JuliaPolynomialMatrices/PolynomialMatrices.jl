@@ -55,8 +55,14 @@ function PolyMatrix{M<:AbstractArray,V}(d::Dict{Int,M}, var::Type{Val{V}})
 end
 
 function PolyMatrix{M1<:AbstractArray}(PM::M1)
-  eltype(M1) <: Poly   || error("PolyMatrix: Matrix of Polynomials expected, try PolyMatrix(A, dims[, var])")
-  length(size(PM)) <= 2 || error("PolyMatrix: higher order arrays not supported at this point")
+  var = countnz(PM) > 0 ? PM[findfirst(x -> x != zero(x), PM)].var :
+                         Poly(T[]).var       # default to Polys default variable
+  PolyMatrix(PM, Val{@compat Symbol(var)})
+end
+
+function PolyMatrix{T1,N,V}(PM::AbstractArray{T1,N}, ::Type{Val{V}})
+  eltype(PM) <: Poly   || error("PolyMatrix: Matrix of Polynomials expected, try PolyMatrix(A, dims[, var])")
+  N <= 2 || error("PolyMatrix: higher order arrays not supported at this point")
   T = eltype(eltype(PM))
   M = typeof(similar(PM, T)) # NOTE: Is there a more memory-efficient way to obtain M?
   c = SortedDict(Dict{Int,M}())
@@ -78,9 +84,7 @@ function PolyMatrix{M1<:AbstractArray}(PM::M1)
       c[eidx-1][pidx] = pc[eidx]
     end
   end
-  var = countnz(PM) > 0 ? PM[findfirst(x -> x != zero(x), PM)].var :
-                         Poly(T[]).var       # default to Polys default variable
-  PolyMatrix(c, size(PM), Val{@compat Symbol(var)})
+  PolyMatrix(c, size(PM), Val{V})
 end
 
 # TODO should we simplify these constructors somehow
