@@ -54,6 +54,46 @@ pm2 = copy(pm1)
 
 @test pm1 == pm2 && pm1 ≢ pm2
 
+# test similar
+@test similar(pm1)                      == PolyMatrix(zeros(Int,2,2))
+#@inferred similar(pm1)
+
+@test similar(pm1, Poly{Float64})       == PolyMatrix(zeros(Float64,2,2))
+#@inferred similar(pm1, Poly{Float64})
+
+@test similar(pm1, Poly{Float64}, (2,))  == PolyMatrix(zeros(Float64,2))
+#@inferred similar(pm1, Poly{Float64}, (2,))
+
+# test hcat vcat
+p1  = Poly([1])
+p2  = Poly([2,1,3])
+m1  = [p1 p2; p2 p1]
+m2  = [p2 p1; p2 p2]
+pm1 = PolyMatrix(m1)
+pm2 = PolyMatrix(m2)
+
+@test hcat(pm1,pm2,pm1) == PolyMatrix(hcat(m1,m2,m1))
+#@inferred hcat(pm1,pm2,pm1)
+
+@test vcat(pm1,pm2,pm1) == PolyMatrix(vcat(m1,m2,m1))
+#@inferred vcat(pm1,pm2,pm1)
+
+@test cat(1,pm1,pm2,pm1) == PolyMatrix(vcat(m1,m2,m1))
+@test cat(2,pm1,pm2,pm1) == PolyMatrix(hcat(m1,m2,m1))
+#@inferred cat(1,pm1,pm2,pm1)
+
+hvcat(1, pm1, pm1)
+#@inferred hvcat(1, pm1, pm1)
+
+@test [pm1 pm2; pm2 pm1] == PolyMatrix([m1 m2; m2 m1])
+#@inferred hvcat((2,2), pm1,pm2,pm2,pm1)
+
+#@test vcat(pm1, eye(Int, 2)) == PolyMatrix(vcat(m1, eye(Int, 2)))
+#@inferred vcat(pm1, eye(Int, 2))
+
+#@test hcat(pm1, eye(2)) == PolyMatrix(hcat(m1, eye(2)))
+#@inferred vcat(pm1, eye(2))
+
 # test getindex
 p1  = Poly([1],:s)
 p2  = Poly([2,1,3],:s)
@@ -65,7 +105,7 @@ ny  = 2
 nu  = 2
 A   = randn(ny*(degreepm2+1),nu)
 B   = eye(Float64,2)
-
+pm1[1].a
 pm2 = PolyMatrix(A, (ny,nu))
 pm3 = PolyMatrix(B)
 @test pm1[1].a ≈ p1.a

@@ -80,7 +80,7 @@ L
 function ltriang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
   n,m = size(p)
   if n < m || rank(p) < m
-    pₑ = PolyMatrix(vcat(p,eye(m)))
+    pₑ = vcat(p, PolyMatrix(eye(T1,m), size(eye(m)), Val{V}))
   else
     pₑ = p
   end

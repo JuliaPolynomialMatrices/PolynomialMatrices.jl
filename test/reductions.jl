@@ -9,7 +9,7 @@ L₀ = PolyMatrix([-1.225s+1.225 zero(s); -2.450*one(s) zero(s); -1.225*one(s) 1
 
 R,U = rtriang(p.', false, 1)
 @test isapprox(R.', L₀; rtol=1e-3)
-@test isapprox(PolyMatrix(U*p.'), R)
+@test isapprox(U*p.', R)
 
 L,U = ltriang(p)
 @test isapprox(p*U, L₀; rtol=1e-3)
@@ -18,7 +18,7 @@ L,U = ltriang(p)
 
 R,U = rtriang(p.')
 @test isapprox(R.', L₀; rtol=1e-3)
-@test isapprox(PolyMatrix(U*p.'), R)
+@test isapprox(U*p.', R)
 
 # hermite
 s = variable("s")
@@ -50,7 +50,7 @@ R1,R2 = colred(p, p2)
 R,U = rowred(p.')
 @test isapprox(R, R₀.')
 @test isapprox(U, U₀.')
-@test isapprox(PolyMatrix(U*p.'), R)
+@test isapprox(U*p.', R)
 
 R1,R2 = rowred(p.', p2.')
 @test isapprox(R, R1)
@@ -73,7 +73,7 @@ R,U = colred(p)
 @test isapprox(p*U, R)
 
 R,U = rowred(p.')
-@test isapprox(PolyMatrix(U*p.'), R)
+@test isapprox(U*p.', R)
 
 # example 4 from "A Fortran 77 package for column reduction of polynomial matrices" Geurts, A.J. Praagman, C., 1998
 ϵ = e-8
@@ -94,8 +94,8 @@ Dₗ = PolyMatrix([s^3+2s^2-1 s+1; -5s^2-13s-8 (s+1)*(s+4)])
 Nᵣ = PolyMatrix([-s^2 -s; zero(s) -s])
 Dᵣ = PolyMatrix([-s^3-2s^2+1 -(s+1)^2; (s+2)^2*(s+1) zero(s)])
 
-rmfd = PolyMatrix(vcat(Dᵣ,Nᵣ))
-lmfd = PolyMatrix(hcat(-Nₗ, Dₗ))
+rmfd = vcat(Dᵣ,Nᵣ)
+lmfd = hcat(-Nₗ, Dₗ)
 
 # verify that example is correct.
 @test vecnorm(lmfd*rmfd) ≈ 0
@@ -115,9 +115,9 @@ N₀ = Nᵣ*U
 @test isapprox(Dₕ,D₀)
 @test isapprox(Nₕ,N₀)
 
-@test vecnorm(lmfd*PolyMatrix(vcat(Dₕ,Nₕ))) < 1e-12
+@test vecnorm(lmfd*vcat(Dₕ,Nₕ)) < 1e-12
 
-rmfd2 = PolyMatrix(vcat(-Dᵣ,Nᵣ))
+rmfd2 = vcat(-Dᵣ,Nᵣ)
 R,U = rtriang(rmfd2,false)
 
 N = U[3:4,1:2]
@@ -125,7 +125,7 @@ D = U[3:4,3:4]
 @test isapprox(N*Dᵣ,D*Nᵣ)
 
 # try to get back rft from obtained lft
-lmfd2 = PolyMatrix(hcat(-N,D))
+lmfd2 = hcat(-N,D)
 
 @test vecnorm(lmfd2*rmfd) < 1e-14
 L,U = ltriang(lmfd2)
