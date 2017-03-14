@@ -31,6 +31,24 @@ H,U = hermite(p)
 @test isapprox(H, H₀)
 @test isapprox(U, U₀)
 
+# gcrd
+s   = variable("s")
+U   = PolyMatrix([zero(s) zero(s) one(s); zero(s) one(s) zero(s); one(s) s+1 -s^2])
+R₀  = PolyMatrix([one(s) s+1; zero(s) s^2])
+p₁  = PolyMatrix([s^2 zero(s); zero(s) s^2])
+p₂  = PolyMatrix([one(s) s+1])
+
+R, V₁, V₂ = gcrd(p₁, p₂)
+
+@test hermite(R)[1] ≈ hermite(R₀)[1]
+@test V₁*R ≈ p₁
+@test V₂*R ≈ p₂
+
+L, V₁, V₂ = gcld(p₁.', p₂.')
+@test hermite(L)[1] ≈ hermite(R₀.')[1]
+@test L*V₁ ≈ p₁.'
+@test L*V₂ ≈ p₂.'
+
 # colred
 s = variable("s")
 

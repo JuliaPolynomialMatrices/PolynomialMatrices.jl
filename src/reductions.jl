@@ -1,4 +1,90 @@
 """
+    gcrd(p₁, p₂, [iterative::Bool=true, dᵤ::Int]) -> R, V₁, V₂
+
+Finds a greatest common right divisor of `p₁` `p₂`.
+The method returns unimodular `V₁` and `V₂` such that `p₁ = V₁ R`, and
+`p₂ = V₂ R`, where `R` is upper triangular.
+
+By default the iterative [version 3'][1] is used to produce the
+triangularization. If `iterative` is to `false`, the [method 3][1] tries to
+triangularize `p` with a reduction matrix of degree `dᵤ`. By default `dᵤ` is set
+high enough to guarantee triangularization if it is possible.
+
+# Examples
+```julia
+julia> s = variable("s");
+julia> p₁ = PolyMatrix([s^2 zero(s); zero(s) s^2]);
+julia> p₂ = PolyMatrix([one(s) s+1]);
+julia> R, V₁, V₂ = gcrd(p₁,p₂);
+julia> R
+2x2 PolyArray{Float64,2}:
+  Poly(-1.0)  Poly(-1.0 - 1.0⋅s)
+  Poly(-0.0)  Poly(-1.1547⋅s^2)
+```
+
+# References
+
+-  [1]: D. Henrion, M. Sebek "Reliable Numerical Methods for Polynomial Matrix
+        Triangularization" IEEE Transactions on Automatic Control, vol. 44,
+        no. 3, Mar. 1999.
+"""
+function gcrd{T1,M1,W,N,T2,M2}(p₁::PolyMatrix{T1,M1,Val{W},N},
+  p₂::PolyMatrix{T2,M2,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1)
+  n₁,m₁ = size(p₁)
+  n₂,m₂ = size(p₂)
+  m₁ == m₂ || (warn("gcrd: p₁ and p₂ does note have the same number of columns"); throw(DomainError()))
+  R,U   = rtriang([p₁; p₂], iterative, dᵤ)
+  detU, adjU = inv(U)
+  V     = adjU/detU(0)
+  V₁    = V[1:n₁,1:m₁]
+  V₂    = V[n₁+(1:n₂),1:m₂]
+  return R[1:m₁,1:m₁], V₁, V₂
+end
+
+"""
+    gcld(p₁, p₂, [iterative::Bool=true, dᵤ::Int]) -> L, V₁, V₂
+
+Finds a greatest common left divisor of `p₁` `p₂`.
+The method returns unimodular `V₁` and `V₂` such that `p₁ = L V₁`, and
+`p₂ = L V₂`, where `L` is lower triangular.
+
+By default the iterative [version 3'][1] is used to produce the
+triangularization. If `iterative` is to `false`, the [method 3][1] tries to
+triangularize `p` with a reduction matrix of degree `dᵤ`. By default `dᵤ` is set
+high enough to guarantee triangularization if it is possible.
+
+# Examples
+```julia
+julia> s = variable("s");
+julia> p₁ = PolyMatrix([s^2 zero(s); zero(s) s^2]);
+julia> p₂ = PolyMatrix([one(s); s+1]);
+julia> L, V₁, V₂ = gcld(p₁,p₂);
+julia> L
+2x2 PolyArray{Float64,2}:
+  Poly(-1.0)          Poly(-0.0)
+  Poly(-1.0 - 1.0⋅s)  Poly(-1.1547⋅s^2)
+```
+
+# References
+
+-  [1]: D. Henrion, M. Sebek "Reliable Numerical Methods for Polynomial Matrix
+        Triangularization" IEEE Transactions on Automatic Control, vol. 44,
+        no. 3, Mar. 1999.
+"""
+function gcld{T1,M1,W,N,T2,M2}(p₁::PolyMatrix{T1,M1,Val{W},N},
+  p₂::PolyMatrix{T2,M2,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1)
+  n₁,m₁ = size(p₁)
+  n₂,m₂ = size(p₂)
+  n₁ == n₂ || (warn("gcrd: p₁ and p₂ does note have the same number of columns"); throw(DomainError()))
+  L,U   = ltriang([p₁ p₂], iterative, dᵤ)
+  detU, adjU = inv(U)
+  V     = adjU/detU(0)
+  V₁    = V[1:n₁,1:m₁]
+  V₂    = V[1:n₁,m₁+(1:m₂)]
+  return L[1:n₁,1:n₁], V₁, V₂
+end
+
+"""
     hermite(p, iterative::Bool=true, dᵤ) -> H, U
 
 Hermite form of a Polynomial Matrix.
@@ -11,9 +97,13 @@ algorithm.
 
 # Examples
 ```julia
-julia> s = variable("s")
-p = PolyMatrix([-s^3-2s^2+1 -(s+1)^2; (s+2)^2*(s+1) zero(s)])
-U,H = hermite(p)
+julia> s = variable("s");
+julia> p = PolyMatrix([-s^3-2s^2+1 -(s+1)^2; (s+2)^2*(s+1) zero(s)]);
+julia> H,U = hermite(p);
+julia> H
+2x2 PolyArray{Float64,2}:
+  Poly(1.0 + 1.0⋅s)                      Poly(0.0)
+  Poly(4.0 + 8.0⋅s + 5.0⋅s^2 + 1.0⋅s^3)  Poly(4.0 + 12.0⋅s + 13.0⋅s^2 + 6.0⋅s^3 + 4.0⋅s^4)
 ```
 
 # References
@@ -22,7 +112,7 @@ U,H = hermite(p)
         Triangularization" IEEE Transactions on Automatic Control, vol. 44,
         no. 3, Mar. 1999.
 """
-function hermite{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
+function hermite{T1,M,W,N}(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1)
   L,U,d = _ltriang(p, iterative, dᵤ)
   n,m   = size(p)
 
@@ -45,7 +135,7 @@ function hermite{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, d
   L = L*U2
 
   Lᵣ = _unshift(L,d)
-  return PolyMatrix(Lᵣ, (n,m), Val{V}; reverse=true), PolyMatrix(U, (m,m), Val{V}; reverse=true)
+  return PolyMatrix(Lᵣ, (n,m), Val{W}; reverse=true), PolyMatrix(U, (m,m), Val{W}; reverse=true)
 end
 
 """
@@ -62,13 +152,14 @@ Note that not necessarily the hermite form is returned (see `hermite`).
 
 # Examples
 ```julia
-julia> s = variable("s")
-p = PolyMatrix([s-1 s^2-1; 2 2s+2; 0 3])
-L,U = ltriang(p)
-L
-3x1 Array{Int64,2}:
-  Poly(-0.816497 + 0.408248⋅s)  Poly(-0.57735 - 0.57735⋅s)
-  Poly(-0.408248)               Poly(0.57735)
+julia> s = variable("s");
+julia> p = PolyMatrix([s-1 s^2-1; 2 2s+2; 0 3]);
+julia> L,U = ltriang(p);
+julia> L
+3x1 PolyArray{Float64,2}:
+  Poly(1.22474 - 1.22474⋅s)  Poly(0)
+  Poly(-2.44949)             Poly(0)
+  Poly(-1.22474)             Poly(1.73205)
 ```
 
 # References
@@ -77,19 +168,48 @@ L
         Triangularization" IEEE Transactions on Automatic Control, vol. 44,
         no. 3, Mar. 1999.
 """
-function ltriang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
+function ltriang{T1,M,W,N}(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1)
   n,m = size(p)
   if n < m || rank(p) < m
-    pₑ = vcat(p, PolyMatrix(eye(T1,m), size(eye(m)), Val{V}))
+    pₑ = vcat(p, PolyMatrix(eye(T1,m), size(eye(m)), Val{W}))
   else
     pₑ = p
   end
   L,U,d = _ltriang(pₑ, iterative, dᵤ)
   L = _unshift(L[1:n*(d+1),1:m],d)
-  return PolyMatrix(L, (n,m), Val{V}; reverse=true), PolyMatrix(U, (m,m), Val{V}; reverse=true)
+  return PolyMatrix(L, (n,m), Val{W}; reverse=true), PolyMatrix(U, (m,m), Val{W}; reverse=true)
 end
 
-function rtriang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
+"""
+    rtriang(p, iterative::Bool=true, dᵤ::Int) -> R, U
+
+Polynomial Matrix triangularization based on Sylvester matrix [method 3][1].
+The method returns unimodular `R` and `U` such that `U p = R`, where `R` is upper triangular.
+
+By default the iterative [version 3'][1] is used. If `iterative` is to `false`,
+the [method 3][1] tries to triangularize `p` with a reduction matrix of degree `dᵤ`.
+By default `dᵤ` is set high enough to guarantee triangularization if it is possible.
+
+Note that not necessarily the hermite form is returned (see `hermite`).
+
+# Examples
+```julia
+julia> s = variable("s");
+julia> p = PolyMatrix([s-1 2 0; s^2-1 2s+2 3]);
+julia> R,U = rtriang(p);
+julia> R
+3x1 PolyArray{Float64,2}:
+  Poly(1.22474 - 1.22474⋅s)  Poly(-2.44949)  Poly(-1.22474)
+  Poly(0)                    Poly(0)         Poly(1.73205)
+```
+
+# References
+
+-  [1]: D. Henrion, M. Sebek "Reliable Numerical Methods for Polynomial Matrix
+        Triangularization" IEEE Transactions on Automatic Control, vol. 44,
+        no. 3, Mar. 1999.
+"""
+function rtriang{T1,M,W,N}(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1)
   L,U = ltriang(p.', iterative, dᵤ)
   return L.', U.'
 end
@@ -106,7 +226,7 @@ function _unshift(L::AbstractMatrix,d::Int)
   return SL
 end
 
-function _ltriang{T1,M,V,N}(p::PolyMatrix{T1,M,Val{V},N}, iterative::Bool=true, dᵤ::Int=-1)
+function _ltriang{T1,M,W,N}(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1)
   # allow user defined dᵤ
   if !iterative && dᵤ < 0
     dᵤ = _mindegree(p)
@@ -314,14 +434,14 @@ end
 # It would be preferable to implement Geurts-Praagman's method
 # NOTE: Should the procedure end with an error if p is not full rank, or simply
 # indicate this as an output argument (a la SLICOT)?
-function colred{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
+function colred{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
   N < 2 || size(p,1) ≥ size(p,2) ||
     error("colred: Polynomial matrix is not full column rank")
 
   p_temp = copy(p)
   c       = p_temp.coeffs          # Dictionary of coefficient matrices of p
   num_col = N < 2 ? 1 : size(p,2)  # Number of columns of p
-  U       = PolyMatrix(eye(T,num_col), Val{V})
+  U       = PolyMatrix(eye(T,num_col), Val{W})
 
   indN    = zeros(Int,num_col)  # Collection of non-zero entries of n
   while true
@@ -378,7 +498,7 @@ function colred{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
     end
 
     # Update unimodular transformation matrix U
-    U = U*PolyMatrix(Utemp, (num_col,num_col), Val{V})
+    U = U*PolyMatrix(Utemp, (num_col,num_col), Val{W})
 
     # Reset collection indN
     fill!(indN, 0)
@@ -387,8 +507,8 @@ end
 
 # Computes the simultaneous column reduced form of two polynomial matrices `p1` and `p2`,
 # according to `p1`(via Wolovich's method)
-function colred{T,M1,M2,V,N1,N2}(p1::PolyMatrix{T,M1,Val{V},N1},
-  p2::PolyMatrix{T,M2,Val{V},N2})
+function colred{T,M1,M2,W,N1,N2}(p1::PolyMatrix{T,M1,Val{W},N1},
+  p2::PolyMatrix{T,M2,Val{W},N2})
   size(p1,2) == size(p2,2) || (N1 < 2 && N2 < 2) ||
     error("colred: Both polynomial matrices should have the same number of columns")
   N1 < 2 || size(p1,1) ≥ size(p1,2) ||
@@ -468,13 +588,13 @@ end
 
 # Computes the row reduced form of a polynomial matrix
 # (via Wolovich's method)
-function rowred{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
+function rowred{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
   (N < 2 && size(p,1) ≤ 1) || size(p,1) ≤ size(p,2) ||
     error("rowred: Polynomial matrix is not full row rank")
   p_temp  = copy(p)
   c       = coeffs(p_temp)  # Dictionary of coefficient matrices of p
   num_row = size(p,1)      # Number of rows of p
-  U       = PolyMatrix(eye(T,num_row), Val{V})
+  U       = PolyMatrix(eye(T,num_row), Val{W})
 
   indN    = zeros(Int,num_row)  # Collection of non-zero entries of n
   while true
@@ -532,7 +652,7 @@ function rowred{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N})
     end
 
     # Update unimodular transformation matrix U
-    U = PolyMatrix(Utemp, (num_row,num_row), Val{V})*U
+    U = PolyMatrix(Utemp, (num_row,num_row), Val{W})*U
 
     # Reset collection indN
     fill!(indN, 0)
@@ -541,8 +661,8 @@ end
 
 # Computes the simultaneous row reduced form of two polynomial matrices `p1` and `p2`,
 # according to `p1`(via Wolovich's method)
-function rowred{T,M1,M2,V,N1,N2}(p1::PolyMatrix{T,M1,Val{V},N1},
-  p2::PolyMatrix{T,M2,Val{V},N2})
+function rowred{T,M1,M2,W,N1,N2}(p1::PolyMatrix{T,M1,Val{W},N1},
+  p2::PolyMatrix{T,M2,Val{W},N2})
   size(p1,1) == size(p2,1) ||
     error("rowred: Both polynomial matrices should have the same number of rows")
   (N1 < 2 && size(p1,1) ≤ 1) || size(p1,1) ≤ size(p1,2) ||
