@@ -3,13 +3,13 @@ function _zerosi{S,G}(b::PolyMatrix{S}, a::PolyMatrix{G}, T)
   si = zeros(promote_type(S, G, T), size(a,1), m)
 end
 
-function filt{T,S,M1,M2,O,N,G}(b::PolyMatrix{T,M1,O,N}, a::PolyMatrix{S,M2,O,N},
+function filt{T,S,M1,M2,W,N,G}(b::PolyMatrix{T,M1,W,N}, a::PolyMatrix{S,M2,W,N},
   x::AbstractArray{G}, si=_zerosi(b, a, G))
   filt!(Array{promote_type(T, G, S)}(size(a,1), size(x,2)), b, a, x, si)
 end
 
-function filt!{H,T,S,M1,M2,O,N,G}(out::AbstractArray{H}, b::PolyMatrix{T,M1,O,N},
-  a::PolyMatrix{S,M2,O,N}, x::AbstractArray{G}, si=_zerosi(b, a, G))
+function filt!{H,T,S,M1,M2,W,N,G}(out::AbstractArray{H}, b::PolyMatrix{T,M1,W,N},
+  a::PolyMatrix{S,M2,W,N}, x::AbstractArray{G}, si=_zerosi(b, a, G))
 
   as = degree(a)
   bs = degree(b)
@@ -60,8 +60,8 @@ function filt!{H,T,S,M1,M2,O,N,G}(out::AbstractArray{H}, b::PolyMatrix{T,M1,O,N}
   return out
 end
 
-function _filt_iir!{T,S,M1,M2,O,N,G}(out::AbstractArray{T}, b::PolyMatrix{T,M1,O,N},
-  a::PolyMatrix{T,M2,O,N}, x::AbstractArray{S}, si::AbstractArray{G})
+function _filt_iir!{T,S,M1,M2,W,N,G}(out::AbstractArray{T}, b::PolyMatrix{T,M1,W,N},
+  a::PolyMatrix{T,M2,W,N}, x::AbstractArray{S}, si::AbstractArray{G})
   silen = size(si,2)
   bc = coeffs(b)
   ac = coeffs(a)
@@ -77,8 +77,8 @@ function _filt_iir!{T,S,M1,M2,O,N,G}(out::AbstractArray{T}, b::PolyMatrix{T,M1,O
   end
 end
 
-function _filt_fir!{T,M1,O,N}(
-  out::AbstractMatrix{T}, b::PolyMatrix{T,M1,O,N}, x, si=zeros(T, size(b,1), degree(b)))
+function _filt_fir!{T,M1,W,N}(
+  out::AbstractMatrix{T}, b::PolyMatrix{T,M1,W,N}, x, si=zeros(T, size(b,1), degree(b)))
   silen = size(si,2)
   bc = coeffs(b)
   @inbounds @simd for i=1:size(x, 2)
@@ -92,8 +92,8 @@ function _filt_fir!{T,M1,O,N}(
   end
 end
 
-function _filt_ar!{T,M1,O,N}(
-  out::AbstractMatrix{T}, a::PolyMatrix{T,M1,O,N},
+function _filt_ar!{T,M1,W,N}(
+  out::AbstractMatrix{T}, a::PolyMatrix{T,M1,W,N},
   x::AbstractArray{T}, si=zeros(T, size(a,1), degree(a)))
   silen = size(si,2)
   ac = coeffs(a)

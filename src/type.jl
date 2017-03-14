@@ -6,19 +6,19 @@
 #
 # NOTE: The constructors should make sure that the highest coefficient matrix is nonzero
 # NOTE: For dense polynomial matrices, defining `coeffs` as a 3-D array could be much more efficient
-immutable PolyMatrix{T,M,V,N} <: AbstractArray{Polynomials.Poly{T},N}
+immutable PolyMatrix{T,M,W,N} <: AbstractArray{Polynomials.Poly{T},N}
   coeffs::SortedDict{Int,M,ForwardOrdering}
   dims::NTuple{N,Int}
 
-  @compat function (::Type{PolyMatrix}){M,N,V}(
-      coeffs::SortedDict{Int,M,ForwardOrdering}, dims::NTuple{N,Int}, ::Type{Val{V}})
+  @compat function (::Type{PolyMatrix}){M,N,W}(
+      coeffs::SortedDict{Int,M,ForwardOrdering}, dims::NTuple{N,Int}, ::Type{Val{W}})
     T = eltype(M)
-    new{T,M,Val{V},N}(coeffs, dims)
+    new{T,M,Val{W},N}(coeffs, dims)
   end
 end
 
 # Evaluation of a polynomial matrix at a specific value x
-@compat function (p::PolyMatrix{T,M,Val{V},N}){T,M,V,N,S}(x::S)
+@compat function (p::PolyMatrix{T,M,Val{W},N}){T,M,W,N,S}(x::S)
   degree(p) == 0 && return convert(M, zeros(T,size(p)...))*zero(S)
 
   c    = p.coeffs
@@ -38,7 +38,7 @@ function PolyMatrix{M<:AbstractArray}(d::Dict{Int,M}, var::SymbolLike=:x)
   PolyMatrix(d, Val{@compat Symbol(var)})
 end
 
-function PolyMatrix{M<:AbstractArray,V}(d::Dict{Int,M}, var::Type{Val{V}})
+function PolyMatrix{M<:AbstractArray,W}(d::Dict{Int,M}, var::Type{Val{W}})
   if length(d) ≤ 0
     warn("PolyMatrix: lengt(d) == 0")
     throw(DomainError())
@@ -51,7 +51,7 @@ function PolyMatrix{M<:AbstractArray,V}(d::Dict{Int,M}, var::Type{Val{V}})
       throw(DomainError())
     end
   end
-  PolyMatrix(c, (n,m), Val{V})
+  PolyMatrix(c, (n,m), Val{W})
 end
 
 function PolyMatrix{M1<:AbstractArray}(PM::M1)
@@ -60,7 +60,7 @@ function PolyMatrix{M1<:AbstractArray}(PM::M1)
   PolyMatrix(PM, Val{@compat Symbol(var)})
 end
 
-function PolyMatrix{T1,N,V}(PM::AbstractArray{T1,N}, ::Type{Val{V}})
+function PolyMatrix{T1,N,W}(PM::AbstractArray{T1,N}, ::Type{Val{W}})
   eltype(PM) <: Poly   || error("PolyMatrix: Matrix of Polynomials expected, try PolyMatrix(A, dims[, var])")
   N <= 2 || error("PolyMatrix: higher order arrays not supported at this point")
   T = eltype(eltype(PM))
@@ -84,7 +84,7 @@ function PolyMatrix{T1,N,V}(PM::AbstractArray{T1,N}, ::Type{Val{V}})
       c[eidx-1][pidx] = pc[eidx]
     end
   end
-  PolyMatrix(c, size(PM), Val{V})
+  PolyMatrix(c, size(PM), Val{W})
 end
 
 # TODO should we simplify these constructors somehow
@@ -93,8 +93,8 @@ function PolyMatrix{T<:Number}(A::AbstractArray{T}, var::SymbolLike=:x)
   return PolyMatrix(A, size(A), Val{@compat Symbol(var)})
 end
 
-function PolyMatrix{T<:Number, V}(A::AbstractArray{T}, ::Type{Val{V}})
-  return PolyMatrix(A, size(A), Val{V})
+function PolyMatrix{T<:Number, W}(A::AbstractArray{T}, ::Type{Val{W}})
+  return PolyMatrix(A, size(A), Val{W})
 end
 
 # TODO should we support vectors or only matrices
@@ -102,7 +102,7 @@ function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int}, var::SymbolLike=:x
   PolyMatrix(A, dims, Val{@compat Symbol(var)})
 end
 
-function PolyMatrix{M<:AbstractArray,V}(A::M, dims::Tuple{Int}, ::Type{Val{V}})
+function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int}, ::Type{Val{W}})
   ny = dims[1]
   dn = div(size(A,1), ny)
   if rem(size(A,1), ny) != 0
@@ -116,14 +116,14 @@ function PolyMatrix{M<:AbstractArray,V}(A::M, dims::Tuple{Int}, ::Type{Val{V}})
     p = A[k*ny+(1:ny)]
     insert!(c, k, p)
   end
-  return PolyMatrix(c, dims, Val{V})
+  return PolyMatrix(c, dims, Val{W})
 end
 
 function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int}, var::SymbolLike=:x; reverse::Bool=false)
   PolyMatrix(A, dims, Val{@compat Symbol(var)}; reverse=reverse)
 end
 
-function PolyMatrix{M<:AbstractArray,V}(A::M, dims::Tuple{Int,Int}, ::Type{Val{V}}; reverse::Bool=false)
+function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int,Int}, ::Type{Val{W}}; reverse::Bool=false)
   ny = dims[1]
   dn = div(size(A,1), ny)
   if rem(size(A,1), ny) != 0 || size(A,2) != dims[2]
@@ -137,14 +137,14 @@ function PolyMatrix{M<:AbstractArray,V}(A::M, dims::Tuple{Int,Int}, ::Type{Val{V
     v = A[idx, :]
     insert!(c, k, v)
   end
-  return PolyMatrix(c, dims, Val{V})
+  return PolyMatrix(c, dims, Val{W})
 end
 
 function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int,Int}, var::SymbolLike=:x)
   PolyMatrix(A, dims, Val{@compat Symbol(var)})
 end
 
-function PolyMatrix{M<:AbstractArray,V}(A::M, dims::Tuple{Int,Int,Int}, ::Type{Val{V}})
+function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int,Int,Int}, ::Type{Val{W}})
   if size(A) != dims && dims[3] < 1
     warn("PolyMatrix: dimensions are not consistent")
     throw(DomainError())
@@ -157,5 +157,5 @@ function PolyMatrix{M<:AbstractArray,V}(A::M, dims::Tuple{Int,Int,Int}, ::Type{V
     p = A[:, :, k+1]
     if (sum(abs2,p) > zero(eltype(A))) insert!(c, k, p) end
   end
-  return PolyMatrix(c, size(A,1,2), Val{V})
+  return PolyMatrix(c, size(A,1,2), Val{W})
 end
