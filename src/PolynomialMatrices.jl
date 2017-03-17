@@ -29,6 +29,7 @@ export is_col_proper, is_row_proper
 export colred, rowred
 export ltriang, rtriang, hermite
 export gcrd, gcld
+export fastrank
 
 const SymbolLike = Union{Symbol,AbstractString,Char}
 const ForwardOrdering = Base.Order.ForwardOrdering
