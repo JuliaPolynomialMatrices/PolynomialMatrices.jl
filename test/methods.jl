@@ -143,3 +143,15 @@ pm5 = transpose(pm4)
 C   = randn(2,2) + randn(2,2)im
 pm6 = PolyMatrix(C)
 @test coeffs(ctranspose(pm6))[0] ≈ ctranspose(C)
+
+# test rank
+p1  = Poly([1],:s)
+p2  = Poly([2,1,3],:s)
+p3  = Poly([2,3,4],:s)
+m1   = [p1 p2; p2 p1]
+m2   = [p1 p2; p1 p2]
+pm1 = PolyMatrix(m1)
+pm2 = PolyMatrix(m2)
+
+@test rank(pm1) == fastrank(pm1) == 2
+@test rank(pm2) == fastrank(pm2) == 1

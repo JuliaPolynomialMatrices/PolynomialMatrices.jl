@@ -363,5 +363,7 @@ function rank{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
   return maximum(a)
 end
 
-summary{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}) =
+fastrank{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}) = rank(p(randn(1)...))
+
+summary{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}) =
   string(Base.dims2string(p.dims), " PolyArray{$T,$N}")
