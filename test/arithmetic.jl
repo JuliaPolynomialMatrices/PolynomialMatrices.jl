@@ -19,42 +19,62 @@ v2  = ones(4)
 @test pm1+pm2 == PolyMatrix(2*m+1)
 @test_throws DomainError pm1+pm3
 @test_throws DomainError pm1+pm4
+#@inferred pm1+pm1
+#@inferred pm2+pm1
 
 @test pm1+a1 == PolyMatrix(m+a1)
 @test a1+pm1 == PolyMatrix(a1+m)
 @test_throws DomainError pm1+a2
+#@inferred pm1+a1
+#@inferred a1+pm1
 
 @test pm1+p1 == PolyMatrix(m+fill(p1,2,2))
 @test p1+pm1 == PolyMatrix(fill(p1,2,2)+m)
+#@inferred pm1+p1
+#@inferred p1+pm1
 
 @test pm1+n1 == PolyMatrix(m+fill(n1,2,2))
 @test n1+pm1 == PolyMatrix(fill(n1,2,2)+m)
+#@inferred pm1+n1
+#@inferred n1+pm1
 
 # subtraction
 @test pm1-pm1 == 0*PolyMatrix(m)
-@test pm1-pm2 == 0*PolyMatrix(m) - fill(1,2,2)
+@test pm1-pm2 ≈ 0*PolyMatrix(m) - fill(1,2,2)
 @test_throws DomainError pm1-pm3
 @test_throws DomainError pm1-pm4
+#@inferred pm1-pm1
+#@inferred pm2-pm1
 
 @test pm1-a1 == PolyMatrix(m-a1)
 @test a1-pm1 == PolyMatrix(a1-m)
 @test_throws DomainError pm1-a2
+#@inferred pm1-a1
+#@inferred a1-pm1
 
 @test pm1-p1 == PolyMatrix(m-fill(p1,2,2))
 @test p1-pm1 == PolyMatrix(fill(p1,2,2)-m)
+#@inferred pm1-p1
+#@inferred p1-pm1
 
 @test pm1-n1 == PolyMatrix(m-fill(n1,2,2))
 @test n1-pm1 == PolyMatrix(fill(n1,2,2)-m)
+#@inferred pm1-n1
+#@inferred n1-pm1
 
 # multiplication
 @test pm1*pm1 ≈ PolyMatrix(m*m)
 @test pm1*pm2 ≈ PolyMatrix(m*(m+fill(1,2,2)))
 @test_throws DomainError pm3*pm1
 @test_throws DomainError pm1*pm4
+#@inferred pm1*pm1
+#@inferred pm2*pm1
 
 @test pm1*a1 ≈ PolyMatrix(m*a1)
 @test a1*pm1 ≈ PolyMatrix(a1*m)
 @test_throws DomainError a2*pm1
+#@inferred pm1*a1
+#@inferred a1+pm1
 
 # fft multiplication
 A = zeros(Int,2,2,12)

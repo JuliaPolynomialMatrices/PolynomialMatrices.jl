@@ -7,16 +7,40 @@ function +{T1,M1,W,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::PolyMatrix{T2,M2
   _add(p1,p2)
 end
 
-function _add{T1,M1,W,N,T2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
-  c1 = coeffs(p1)
-  c2 = coeffs(p2)
-  v1 = first(c1)[end] # for polynomials first(c1) returns index of first element
-  v2 = first(c2)[end] # for polynomialmatrices it returns key value pair
-  vr = v1+v2
-  M  = typeof(vr)
-  r  = PolyMatrix(SortedDict{Int,M,ForwardOrdering}(), size(vr), Val{W})
+function _add{T1,M1,W,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},N},
+  p2::PolyMatrix{T2,M2,Val{W},N})
+  c1    = coeffs(p1)
+  c2    = coeffs(p2)
+  _,v1  = first(c1)
+  _,v2  = first(c2)
+  vr    = v1+v2
+  M     = typeof(vr)
 
-  cr  = coeffs(r)
+  cr  = SortedDict(0=>zeros(vr))
+  sᵢ  = intersect(keys(c1), keys(c2))
+  s₁  = setdiff(keys(c1), sᵢ)
+  s₂  = setdiff(keys(c2), sᵢ)
+  for k in s₁
+    insert!(cr, k, c1[k])
+  end
+  for k in s₂
+    insert!(cr, k, c2[k])
+  end
+  for k in sᵢ
+    insert!(cr, k, c1[k]+c2[k])
+  end
+  return PolyMatrix(cr, size(vr), Val{W})
+end
+
+function _add{T1,M1,W,N,T2<:Poly}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
+  c1    = coeffs(p1)
+  c2    = coeffs(p2)
+  _,v1  = first(c1) # for polynomials first(c1) returns index of first element
+  v2    = first(c2)   # for polynomialmatrices it returns key value pair
+  vr    = v1+v2
+  M     = typeof(vr)
+
+  cr  = SortedDict{Int,M,ForwardOrdering}()
   sᵢ  = intersect(_keys(c1), _keys(c2))
   s₁  = setdiff(_keys(c1), sᵢ)
   s₂  = setdiff(_keys(c2), sᵢ)
@@ -24,14 +48,12 @@ function _add{T1,M1,W,N,T2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
     insert!(cr, k, c1[k])
   end
   for k in s₂
-    v = T2 <:Poly ? p2[k] : c2[k]
-    insert!(cr, k, v)
+    insert!(cr, k, p2[k])
   end
   for k in sᵢ
-    v = T2 <:Poly ? c1[k]+p2[k] : c1[k]+c2[k]
-    insert!(cr, k, v)
+    insert!(cr, k, c1[k]+p2[k])
   end
-  return r
+  return PolyMatrix(cr, size(vr), Val{W})
 end
 
 function +{T1,M1,W1,W2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N})
@@ -39,12 +61,13 @@ function +{T1,M1,W1,W2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{
   throw(DomainError())
 end
 
+
 function -{T1,M1,W,N}(p::PolyMatrix{T1,M1,Val{W},N})
-  r = PolyMatrix(SortedDict{Int,M1,ForwardOrdering}(), size(p), Val{W})
+  cr = SortedDict{Int,M1,ForwardOrdering}()
   for (k,v) in coeffs(p)
-    insert!(coeffs(r), k, -coeffs(p)[k])
+    insert!(cr, k, -v)
   end
-  return r
+  return PolyMatrix(cr, size(p), Val{W})
 end
 
 -{T1,M1,W,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::PolyMatrix{T2,M2,Val{W},N}) = +(p1,-p2)
@@ -83,16 +106,45 @@ function _mul{T1,T2}(p1::T1, p2::T2)
   end
 end
 
-function _mulconv{T1,M1,W,N,T2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
-  # figure out return type
-  c1 = coeffs(p1)
-  c2 = coeffs(p2)
-  v1 = first(c1)[end] # for polynomials first(c1) returns index of first element
-  v2 = first(c2)[end] # for polynomialmatrices it returns key value pair
-  vr = v1*v2
 
-  M  = typeof(vr)
-  r  = PolyMatrix(SortedDict{Int,M,ForwardOrdering}(), size(vr), Val{W})
+function _mulconv{T1,M1,W,T2,M2,N}(p1::PolyMatrix{T1,M1,Val{W},2},
+  p2::PolyMatrix{T2,M2,Val{W},N})
+  # figure out return type
+  c1    = coeffs(p1)
+  c2    = coeffs(p2)
+  _,v1  = first(c1) # for polynomials first(c1) returns index of first element
+  _,v2  = first(c2) # for polynomialmatrices it returns key value pair
+  vr    = v1*v2
+  M     = typeof(vr)
+  cr    = SortedDict{Int,M,ForwardOrdering}()
+
+  # find all new powers k1+k2 and corresponding k1, k2
+  klist = Dict{Int,Vector{Tuple{Int,Int}}}()
+  for k1 in keys(c1), k2 in keys(c2)
+    klist[k1+k2] = push!(get(klist,k1+k2, Vector{Tuple{Int,Int}}()), tuple(k1,k2))
+  end
+
+  # do the calculations
+  for k in keys(klist)
+    vk = zeros(vr)
+    for v in klist[k]
+      vk += c1[v[1]]*c2[v[2]]
+    end
+    insert!(cr, k, vk)
+  end
+  return PolyMatrix(cr, size(vr), Val{W})
+end
+
+
+function _mulconv{T1,M1,W,N,T2<:Poly}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
+  # figure out return type
+  c1    = coeffs(p1)
+  c2    = coeffs(p2)
+  _,v1  = first(c1) # for polynomials first(c1) returns index of first element
+  v2    = first(c2) # for polynomialmatrices it returns key value pair
+  vr    = v1*v2
+  M     = typeof(vr)
+  cr    = SortedDict{Int,M,ForwardOrdering}()
 
   # find all new powers k1+k2 and corresponding k1, k2
   klist = Dict{Int,Vector{Tuple{Int,Int}}}()
@@ -106,24 +158,24 @@ function _mulconv{T1,M1,W,N,T2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
   for k in keys(klist)
     vk = zeros(vr)
     for v in klist[k]
-      vk += T2 <:Poly ? c1[v[1]]*p2[v[2]] : c1[v[1]]*c2[v[2]]
+      vk += c1[v[1]]*p2[v[2]]
     end
-    insert!(r.coeffs, k, vk)
+    insert!(cr, k, vk)
   end
-  return r
+  return PolyMatrix(cr, size(vr), Val{W})
 end
 
 _keys{T}(c::T) = keys(c)
 _keys{T<:AbstractArray}(c::T) = eachindex(c)-1
 
-function _mulfft{T1,M1,W,N,T2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
-  T = promote_type(T1, eltype(eltype(T2)))
-
-  c1 = coeffs(p1)
-  c2 = coeffs(p2)
-  v1 = first(c1)[end] # for polynomials first(c1) returns index of first element
-  v2 = first(c2)[end] # for polynomialmatrices it returns key value pair
-  vr = v1*v2
+function _mulfft{T1,M1,W,T2,M2,N}(p1::PolyMatrix{T1,M1,Val{W},2},
+  p2::PolyMatrix{T2,M2,Val{W},N})
+  T     = promote_type(T1, T2)
+  c1    = coeffs(p1)
+  c2    = coeffs(p2)
+  _,v1  = first(c1) # for polynomials first(c1) returns index of first element
+  _,v2  = first(c2) # for polynomialmatrices it returns key value pair
+  vr    = v1*v2
 
   n,m = size(vr)
   dn  = degree(p1)+degree(p2)+1
@@ -136,7 +188,33 @@ function _mulfft{T1,M1,W,N,T2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
 
   a = zeros(eltype(B1),n,m,dn)
   @inbounds @simd for k in 1:dn
-    a[:,:,k] += T2 <:Poly ? B1[:,:,k]*B2[k] : B1[:,:,k]*B2[:,:,k]
+    a[:,:,k] += B1[:,:,k]*B2[:,:,k]
+  end
+  # interpolate using fft
+  ar = _truncate(T,ifft(a,3))
+  return PolyMatrix(ar, Val{W})
+end
+
+function _mulfft{T1,M1,W,N,T2<:Poly}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
+  T     = promote_type(T1, eltype(T2))
+  c1    = coeffs(p1)
+  c2    = coeffs(p2)
+  _,v1  = first(c1) # for polynomials first(c1) returns index of first element
+  v2    = first(c2) # for polynomialmatrices it returns key value pair
+  vr    = v1*v2
+
+  n,m = size(vr)
+  dn  = degree(p1)+degree(p2)+1
+  # copy all elements into three-dimensional matrices
+  A1  = _fftmatrix(p1, T, dn)
+  A2  = _fftmatrix(p2, T, dn)
+  # take fft and evaluate multiplication at each interpolation point
+  B1  = fft(A1, ndims(A1))
+  B2  = fft(A2, ndims(A2))
+
+  a = zeros(eltype(B1),n,m,dn)
+  @inbounds @simd for k in 1:dn
+    a[:,:,k] += B1[:,:,k]*B2[k]
   end
   # interpolate using fft
   ar = _truncate(T,ifft(a,3))
@@ -189,18 +267,17 @@ end
 
 ## Basic operations between polynomial matrices and Numbers
 function _add{T1,M1,W,N,T2<:Number}(p1::PolyMatrix{T1,M1,Val{W},N}, v2::T2)
-  T   = promote_type(T1, T2)
-  c1  = coeffs(p1)
-  v1  = first(c1)[end] # for polynomials first(c1) returns index of first element
-  M   = typeof(similar(v1, T))
-  r   = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p1), Val{W})
-  cr  = coeffs(r)
+  T     = promote_type(T1, T2)
+  c1    = coeffs(p1)
+  _,v1  = first(c1)    # for polynomials first(c1) returns index of first element
+  M     = typeof(similar(v1, T))
+  cr    = SortedDict{Int,M,ForwardOrdering}()
 
   for (k1,v1) in coeffs(p1)
     insert!(cr, k1, v1)
   end
   cr[0] += v2
-  return r
+  return PolyMatrix(cr, size(p1), Val{W})
 end
 
 +{T,M1,W,N,M2<:Number}(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) = _add(p1, p2)
@@ -210,17 +287,16 @@ end
 -{T,M1,W,N,M2<:Number}(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) = _add(-p2, p1)
 
 function _mul{T1,M1,W,N,T2<:Number}(p1::PolyMatrix{T1,M1,Val{W},N}, v2::T2)
-  T   = promote_type(T1, T2)
-  c1  = coeffs(p1)
-  v1  = first(c1)[end] # for polynomials first(c1) returns index of first element
-  M   = typeof(similar(v1, T))
-  r   = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p1), Val{W})
-  cr  = coeffs(r)
+  T     = promote_type(T1, T2)
+  c1    = coeffs(p1)
+  _,v1  = first(c1) # for polynomials first(c1) returns index of first element
+  M     = typeof(similar(v1, T))
+  cr    = SortedDict{Int,M,ForwardOrdering}()
 
   for (k1,v1) in coeffs(p1)
     insert!(cr, k1, v1*v2)
   end
-  return r
+  return PolyMatrix(cr, size(p1), Val{W})
 end
 
 *{T,M1,W,N,M2<:Number}(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) = _mul(p1, p2)

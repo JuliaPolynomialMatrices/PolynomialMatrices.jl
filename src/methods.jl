@@ -67,11 +67,11 @@ variable{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}) = variable(T, @compat Symbol(W))
 
 # Copying
 function copy{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
-  r = PolyMatrix( SortedDict(Dict{Int,M}()), size(p), Val{W})
+  cr  = SortedDict(Dict{Int,M}())
   for (k,v) in coeffs(p)
-    r.coeffs[k] = copy(v)
+    insert!(cr, k, copy(v))
   end
-  return r
+  PolyMatrix(cr, size(p), Val{W})
 end
 
 # getindex
@@ -81,27 +81,30 @@ end
 
 function getindex{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}, i::Integer)
   @compat @boundscheck checkbounds(p, i)
-  r = Poly([v[i] for (k,v) in coeffs(p)], W)
-  return r
+  vr = zeros(T, degree(p)+1)
+  for (k,v) in coeffs(p)
+    vr[k+1] = v[i]
+  end
+  r = Poly(vr, W)
 end
 
 function getindex{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}, i::Integer, j::Integer)
-  r = Poly([v[i,j] for (k,v) in coeffs(p)], W)
-  return r
+  vr = zeros(T, degree(p)+1)
+  for (k,v) in coeffs(p)
+    vr[k+1] = v[i,j]
+  end
+  r = Poly(vr, W)
 end
 
 function getindex{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}, I...)
   c   = coeffs(p)
   _,v = first(c)
   vr  = getindex(v, I...)
-  r   = PolyMatrix(SortedDict(Dict{Int,typeof(vr)}()), size(vr), Val{W})
-  cr  = coeffs(r)
+  cr  = SortedDict(Dict{Int,typeof(vr)}())
   for (k,v) in c
-    #if getindex(v, I...) != zeros(getindex(v, I...))
     insert!(cr, k, getindex(v, I...))
-    #end
   end
-  r
+  PolyMatrix(cr, size(vr), Val{W})
 end
 
 _PolyMatrix{T,N}(p::Array{Poly{T},N}) = PolyMatrix(p)
@@ -250,11 +253,11 @@ coeffs(p::PolyMatrix) = p.coeffs
 degree{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})  = last(coeffs(p))[1]
 
 function transpose{T,M<:AbstractMatrix,W,N}(p::PolyMatrix{T,M,Val{W},N})
-  r = PolyMatrix( SortedDict(Dict{Int,M}()), reverse(p.dims), Val{W})
+  cr = SortedDict(Dict{Int,M}())
   for (k,v) in p.coeffs
-    insert!(coeffs(r), k, transpose(v))
+    insert!(cr, k, transpose(v))
   end
-  return r
+  PolyMatrix(cr, reverse(p.dims), Val{W})
 end
 
 function ctranspose{T1,M1,W,N}(p::PolyMatrix{T1,M1,Val{W},N})
@@ -262,11 +265,11 @@ function ctranspose{T1,M1,W,N}(p::PolyMatrix{T1,M1,Val{W},N})
   k1,v1 = first(c)
   vr    = ctranspose(v1)
   M     = typeof(vr)
-  r     = PolyMatrix( SortedDict{Int,M,ForwardOrdering}(), size(p), Val{W})
+  cr    = SortedDict(Dict{Int,M}())
   for (k,v) in c
-    insert!(coeffs(r), k, ctranspose(v))
+    insert!(cr, k, ctranspose(v))
   end
-  return r
+  PolyMatrix(cr, size(p), Val{W})
 end
 
 # TODO is there a definition for matrix norms for polynomial matrices?
@@ -363,7 +366,7 @@ function rank{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
   return maximum(a)
 end
 
-fastrank{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}) = rank(p(randn(1)...))
+fastrank{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}) = rank(p(randn(1)...))
 
-summary{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N}) =
+summary{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}) =
   string(Base.dims2string(p.dims), " PolyArray{$T,$N}")

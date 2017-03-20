@@ -13,8 +13,34 @@ immutable PolyMatrix{T,M,W,N} <: AbstractArray{Polynomials.Poly{T},N}
   @compat function (::Type{PolyMatrix}){M,N,W}(
       coeffs::SortedDict{Int,M,ForwardOrdering}, dims::NTuple{N,Int}, ::Type{Val{W}})
     T = eltype(M)
+    _truncate!(coeffs, dims, T)
     new{T,M,Val{W},N}(coeffs, dims)
   end
+end
+
+function truncate!{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N},
+  ϵ=Base.rtoldefault(T)*length(p)*degree(p))
+  _truncate!(coeffs(p), size(p), T, ϵ)
+end
+
+function _truncate!{T,M,N}(coeffs::SortedDict{Int,M,ForwardOrdering},
+  dims::NTuple{N,Int}, ::Type{T},
+  ϵ::Real=Base.rtoldefault(real(T))*prod(dims)*length(coeffs))
+  v1 = first(coeffs)[end]
+  for (st,k,v) in semitokens(coeffs)
+    nonz = true
+    for i in eachindex(v)
+      v[i]  = abs(v[i]) < ϵ ? zero(v[i]) : v[i]
+      nonz &= abs(v[i]) < ϵ
+    end
+    if nonz
+      delete!((coeffs,st)) # all entries are zero => remove semitoken
+    end
+  end
+  if length(coeffs) == zero(T)
+    insert!(coeffs, 0, zeros(v1))
+  end
+  coeffs
 end
 
 # Evaluation of a polynomial matrix at a specific value x
