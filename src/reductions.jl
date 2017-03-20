@@ -475,8 +475,7 @@ function colred{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
     end
 
     # Unimodular matrix Utemp
-    Utemp = SortedDict(Dict{Int,AbstractMatrix{}}())
-    insert!(Utemp, 0, eye(T,num_col))
+    Utemp = SortedDict(0 => eye(T,num_col))
     for i = 1:max_temp-minimum(k[indN[1:num_nz]])
       insert!(Utemp, i, zeros(T,num_col,num_col))
     end
@@ -629,8 +628,8 @@ function rowred{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
     end
 
     # Unimodular matrix Utemp
-    Utemp = SortedDict(Dict{Int,AbstractMatrix{}}())
-    insert!(Utemp, 0, eye(T,num_row))
+    Utemp = SortedDict(0 => eye(T,num_row))
+    #insert!(Utemp, 0, )
     for i = 1:max_temp-minimum(k[indN[1:num_nz]])
       insert!(Utemp, i, zeros(T,num_row,num_row))
     end

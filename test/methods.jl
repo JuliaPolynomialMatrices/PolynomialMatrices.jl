@@ -9,13 +9,13 @@ pm2 = PolyMatrix([p1 p2; p2 p2])
 pm3 = PolyMatrix([p3 p2; p2 p3])
 pm4 = PolyMatrix([p4 p2; p2 p4])
 pm5 = PolyMatrix([p5 p2; p2 p4])
-pm6 = PolyMatrix(eye(2))
+pm6 = PolyMatrix(eye(2), :s)
 m1  = eye(2)
 
 @test pm1 != pm2 != pm3 != pm4 != pm5
 
 @test !isapprox(pm2,pm3)
-@test !isapprox(pm3,pm4; rtol=0.001)
+@test !isapprox(pm3,pm4; rtol=0.01)
 @test isapprox(pm3,pm4; rtol=0.1)
 @test !isapprox(pm3,pm4; rtol=0.001)
 @test isapprox(pm6,m1)
@@ -33,7 +33,7 @@ PolyB = PolyMatrix(B, (2,2), :s)
 
 # different variables
 B = [0. 1; 1 1]
-C = [-0. 1; 1 1]
+C = [0. 1; 1 1]
 PolyB = PolyMatrix(B, (2,2), :s)
 PolyC = PolyMatrix(B, (2,2), :q)
 PolyD = PolyMatrix(C, (2,2), :s)
@@ -44,7 +44,7 @@ PolyD = PolyMatrix(C, (2,2), :s)
 
 @test PolyB ≠ PolyC && !isequal(PolyB, PolyC)
 @test_throws DomainError PolyB ≈ PolyC
-@test PolyB == PolyD && PolyB ≈ PolyD && !isequal(PolyB, PolyD)
+@test PolyB == PolyD && PolyB ≈ PolyD && isequal(PolyB, PolyD)
 
 # test copy
 p1  = Poly([1])
@@ -110,14 +110,17 @@ pm2 = PolyMatrix(A, (ny,nu))
 pm3 = PolyMatrix(B)
 @test pm1[1].a ≈ p1.a
 @test typeof(pm1[1]) == Poly{Int}
+#@inferred pm1[1]
 
 t = pm1[1:2,2]
 @test coeffs(t[1]) ≈ coeffs(p2)
 @test coeffs(t[2]) ≈ coeffs(p1)
 @test typeof(pm1[1:2,2]) == PolyMatrix{Int,Vector{Int},Val{vartype(pm1)},1}
+#@inferred pm1[1:2,2]
 
 t = pm1[1:2,2:2]
 @test typeof(t) == PolyMatrix{Int,Matrix{Int},Val{vartype(pm1)},2}
+#@inferred pm1[1:2,2:2]
 
 # test setindex!
 @test_throws InexactError pm1[1] = Poly([1.5])
@@ -134,15 +137,18 @@ for idx in eachindex(pm3)
 end
 
 @test coeffs(pm3[end]) ≈ coeffs(one(Poly{Float64}))
+#@inferred coeffs(pm3[end])
 
 # test transpose and ctranspose
 pm4[2] = p3
 pm5 = transpose(pm4)
 @test coeffs(pm4[2]) ≈ coeffs(pm5[3])
+#@inferred transpose(pm4)
 
 C   = randn(2,2) + randn(2,2)im
 pm6 = PolyMatrix(C)
 @test coeffs(ctranspose(pm6))[0] ≈ ctranspose(C)
+#@inferred ctranspose(pm4)
 
 # test rank
 p1  = Poly([1],:s)

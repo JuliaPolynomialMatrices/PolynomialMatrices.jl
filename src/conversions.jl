@@ -5,11 +5,11 @@ promote_rule{T1,T2,M1,M2,W,N}(::Type{PolyMatrix{T1,M1,Val{W},N}},
 
 function _convert{T1,N,T2,M1,M2,W}(::Type{PolyMatrix{T1,M1,Val{W},N}},
   p::PolyMatrix{T2,M2,Val{W},N})
-  r = PolyMatrix( SortedDict(Dict{Int,M1}()), size(p), Val{W})
+  cr = SortedDict(Dict{Int,M1}())
   for (k,c) in coeffs(p)
-    r.coeffs[k] = map(x->convert(T1,x),c)
+    insert!(cr, k, map(x->convert(T1,x),c))
   end
-  r
+  PolyMatrix(cr, size(p), Val{W})
 end
 
 @generated function convert{T1,N,T2,M1,M2,W}(::Type{PolyMatrix{T1,M1,Val{W},N}},
