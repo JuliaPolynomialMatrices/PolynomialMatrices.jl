@@ -86,10 +86,8 @@ function PolyMatrix{M1<:AbstractArray}(PM::M1)
   PolyMatrix(PM, Val{@compat Symbol(var)})
 end
 
-function PolyMatrix{T1,N,W}(PM::AbstractArray{T1,N}, ::Type{Val{W}})
-  eltype(PM) <: Poly   || error("PolyMatrix: Matrix of Polynomials expected, try PolyMatrix(A, dims[, var])")
+function PolyMatrix{T,N,W}(PM::AbstractArray{Poly{T},N}, ::Type{Val{W}})
   N <= 2 || error("PolyMatrix: higher order arrays not supported at this point")
-  T = eltype(eltype(PM))
   M = typeof(similar(PM, T)) # NOTE: Is there a more memory-efficient way to obtain M?
   c = SortedDict(Dict{Int,M}())
   # find the union of all index sets of all polynomials in the matrix PM

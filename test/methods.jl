@@ -4,13 +4,17 @@ p2  = Poly([2,1,3.1], :s)
 p3  = Poly([Inf,1,3.1], :s)
 p4  = Poly([Inf,1.,3], :s)
 p5  = Poly([NaN64,1.,3], :s)
-pm1 = PolyMatrix([p1 p2; p2 p1])
-pm2 = PolyMatrix([p1 p2; p2 p2])
-pm3 = PolyMatrix([p3 p2; p2 p3])
-pm4 = PolyMatrix([p4 p2; p2 p4])
-pm5 = PolyMatrix([p5 p2; p2 p4])
+m1  = [p1 p2; p2 p1]
+m2  = [p1 p2; p2 p2]
+m3  = [p3 p2; p2 p3]
+m4  = [p4 p2; p2 p4]
+m5  = [p5 p2; p2 p4]
+pm1 = PolyMatrix(m1)
+pm2 = PolyMatrix(m2)
+pm3 = PolyMatrix(m3)
+pm4 = PolyMatrix(m4)
+pm5 = PolyMatrix(m5)
 pm6 = PolyMatrix(eye(2), :s)
-m1  = eye(2)
 
 @test pm1 != pm2 != pm3 != pm4 != pm5
 
@@ -18,9 +22,13 @@ m1  = eye(2)
 @test !isapprox(pm3,pm4; rtol=0.01)
 @test isapprox(pm3,pm4; rtol=0.1)
 @test !isapprox(pm3,pm4; rtol=0.001)
-@test isapprox(pm6,m1)
-@test isapprox(m1,pm6)
-@test !isapprox(m1,pm3)
+@test isapprox(eye(2),pm6)
+@test !isapprox(pm1,pm3)
+
+@test !isapprox(pm3,m4; rtol=0.01)
+@test !isapprox(m3,pm4; rtol=0.01)
+@test isapprox(pm3,m4; rtol=0.1)
+@test isapprox(m3,pm4; rtol=0.1)
 
 B = [2 2; 2 2]
 C = [1 1; 1 1]
@@ -30,6 +38,8 @@ PolyB = PolyMatrix(B, (2,2), :s)
 @test pm2 == copy(pm2)
 @test pm1 != pm2
 @test pm1 != PolyB
+
+
 
 # different variables
 B = [0. 1; 1 1]
@@ -56,12 +66,15 @@ pm2 = copy(pm1)
 
 # test similar
 @test similar(pm1)                      == PolyMatrix(zeros(Int,2,2))
+@test similar(pm1, Int)                 == PolyMatrix(zeros(Int,2,2))
 #@inferred similar(pm1)
 
 @test similar(pm1, Poly{Float64})       == PolyMatrix(zeros(Float64,2,2))
+@test similar(pm1, Float64)             == PolyMatrix(zeros(Float64,2,2))
 #@inferred similar(pm1, Poly{Float64})
 
-@test similar(pm1, Poly{Float64}, (2,))  == PolyMatrix(zeros(Float64,2))
+@test similar(pm1, Poly{Float64}, (2,)) == PolyMatrix(zeros(Float64,2))
+@test similar(pm1, Float64, (2,))       == PolyMatrix(zeros(Float64,2))
 #@inferred similar(pm1, Poly{Float64}, (2,))
 
 # test hcat vcat

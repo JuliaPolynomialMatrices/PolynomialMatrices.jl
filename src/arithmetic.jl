@@ -195,8 +195,8 @@ function _mulfft{T1,M1,W,T2,M2,N}(p1::PolyMatrix{T1,M1,Val{W},2},
   return PolyMatrix(ar, Val{W})
 end
 
-function _mulfft{T1,M1,W,N,T2<:Poly}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
-  T     = promote_type(T1, eltype(T2))
+function _mulfft{T1,M1,W,N,T2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::Poly{T2})
+  T     = promote_type(T1, T2)
   c1    = coeffs(p1)
   c2    = coeffs(p2)
   _,v1  = first(c1) # for polynomials first(c1) returns index of first element

@@ -5,22 +5,28 @@ length{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})      = prod(size(p))
 start{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})       = 1
 next{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}, state) = p[state], state+1
 done{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}, state) = state > length(p)
-eltype{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})      = Poly{T}
+eltype{T,M,W,N}(::PolyMatrix{T,M,Val{W},N})       = Poly{T}
 vartype{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})     = W
 mattype{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})     = M
 @compat Base.IndexStyle(::Type{<:PolyMatrix})     = IndexLinear()
 
 function similar{T,M,W,N,N2}(p::PolyMatrix{T,M,Val{W},N}, dims::NTuple{N2,Int})
   _,v1 = coeffs(p) |> first
-  vr = zeros(similar(v1, eltype(eltype(p)), dims))
+  vr = zeros(similar(v1, T, dims))
   r = PolyMatrix(SortedDict(0=>vr), size(vr), Val{W})
 end
 
-function similar{T,M,W,N,S,N2}(p::PolyMatrix{T,M,Val{W},N}, T2::Type{S}=eltype(p),
+function similar{T,M,W,N,S,N2}(p::PolyMatrix{T,M,Val{W},N}, ::Type{S}=T,
   dims::NTuple{N2,Int}=size(p))
-  T2 <: Poly || (warn("similar: expected Type{S}<:Poly"); throw(DomainError))
   _,v1 = coeffs(p) |> first
-  vr = zeros(similar(v1, eltype(T2), dims))
+  vr = zeros(similar(v1, S, dims))
+  r = PolyMatrix(SortedDict(0=>vr), size(vr), Val{W})
+end
+
+function similar{T,M,W,N,S,N2}(p::PolyMatrix{T,M,Val{W},N}, ::Type{Poly{S}}=Poly{T},
+  dims::NTuple{N2,Int}=size(p))
+  _,v1 = coeffs(p) |> first
+  vr = zeros(similar(v1, S, dims))
   r = PolyMatrix(SortedDict(0=>vr), size(vr), Val{W})
 end
 
@@ -333,8 +339,9 @@ function isapprox{T1,M1,W1,W2,N,T2,M2}(p₁::PolyMatrix{T1,M1,Val{W1},N}, p₂::
   throw(DomainError())
 end
 
-function isapprox{T1,M1,W,N,M2<:AbstractArray}(p₁::PolyMatrix{T1,M1,Val{W},N}, n::M2;
-  rtol::Real=Base.rtoldefault(T1,eltype(M2)), atol::Real=0, norm::Function=vecnorm)
+function isapprox{T1,M1,W,N,T2}(p₁::PolyMatrix{T1,M1,Val{W},N},
+  n::AbstractArray{T2,N}; rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0,
+  norm::Function=vecnorm)
   d = norm(p₁ - n)
   if isfinite(d)
     return d <= atol + rtol*max(norm(p₁), norm(n))
@@ -352,7 +359,20 @@ function isapprox{T1,M1,W,N,M2<:AbstractArray}(p₁::PolyMatrix{T1,M1,Val{W},N},
     return ifelse(has_zero, true, isapprox(n,zeros(n); rtol=rtol, atol=atol, norm=norm))
   end
 end
-isapprox{T1,M1,W,N,M2<:AbstractArray}(n::M2, p₁::PolyMatrix{T1,M1,Val{W},N}) = (p₁ == n)
+isapprox{T1,M1,W,N,T2}(n::AbstractArray{T2,N}, p₁::PolyMatrix{T1,M1,Val{W},N}) = (p₁ ≈ n)
+
+function isapprox{T1,M1,W,N,T2}(p₁::PolyMatrix{T1,M1,Val{W},N},
+  n::AbstractArray{Poly{T2},N}; rtol::Real=Base.rtoldefault(T1,T2),
+  atol::Real=0, norm::Function=vecnorm)
+  return isapprox(p₁, PolyMatrix(n); rtol=rtol, atol=atol, norm=norm)
+end
+
+function isapprox{T1,M1,W,N,T2}(n::AbstractArray{Poly{T2},N},
+  p₁::PolyMatrix{T1,M1,Val{W},N}; rtol::Real=Base.rtoldefault(T1,T2),
+  atol::Real=0, norm::Function=vecnorm)
+  return isapprox(PolyMatrix(n), p₁; rtol=rtol, atol=atol, norm=norm)
+end
+
 
 function rank{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
   d = degree(p)+1
