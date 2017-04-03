@@ -28,7 +28,7 @@ with a matrix of `Poly` objects. A `PolyMatrix` is implemented and stored as a
 be constructed from a `dict`.
 
 As it is implemented now, `PolyMatrix` objects do not allow for mixing
-different variables --- a `PolyMatrix` object's can only operate together
+different variables --- a `PolyMatrix` object can only operate together
 with `PolyMatrix` objects with the same variable.
 
 For more information, check the documentation with `?PolynomialMatrices` command.
