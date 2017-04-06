@@ -45,14 +45,14 @@ function filt!{H,T,S,M1,M2,W,N,G}(out::AbstractArray{H}, b::PolyMatrix{T,M1,W,N}
   # Pad the coefficients with zeros if needed
   if bs < sz
     bc = coeffs(b)
-    for i = bs+1:sz
-      bc[i] = zeros(similar(bc[0]))
+    for i in setdiff(0:sz, keys(bc))
+      insert!(bc, i, zeros(first(bc)[2]))
     end
   end
   if 0 < as < sz
     ac = coeffs(a)
-    for i = as+1:sz
-      insert!(ac, i, zeros(similar(ac[0])))
+    for i in setdiff(0:sz, keys(ac))
+      insert!(ac, i, zeros(first(ac)[2]))
     end
   end
 

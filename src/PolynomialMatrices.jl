@@ -22,7 +22,7 @@ import Base: vecnorm, norm, rank, isapprox, ==, isequal, hash
 # Export
 export PolyMatrix
 export coeffs, degree, variable
-export vartype
+export vartype, mattype
 export col_degree, row_degree
 export high_col_deg_matrix, high_row_deg_matrix
 export is_col_proper, is_row_proper
