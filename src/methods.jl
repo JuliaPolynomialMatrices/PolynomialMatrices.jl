@@ -23,7 +23,7 @@ function similar{T,M,W,N,S,N2}(p::PolyMatrix{T,M,Val{W},N}, ::Type{S}=T,
   r = PolyMatrix(SortedDict(0=>vr), size(vr), Val{W})
 end
 
-function similar{T,M,W,N,S,N2}(p::PolyMatrix{T,M,Val{W},N}, ::Type{Poly{S}}=Poly{T},
+function similar{T,M,W,N,S,N2}(p::PolyMatrix{T,M,Val{W},N}, ::Type{Poly{S}},
   dims::NTuple{N2,Int}=size(p))
   _,v1 = coeffs(p) |> first
   vr = zeros(similar(v1, S, dims))
