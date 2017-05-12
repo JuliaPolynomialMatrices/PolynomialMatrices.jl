@@ -6,6 +6,10 @@ pm1 = PolyMatrix([p1 p2; p2 p1])
 pm2 = PolyMatrix([p1 p2; p2 p2])
 pm3 = PolyMatrix(eye(2,2), :s)
 
+A0 = [2.0 1.0; 0.5 3.0]
+coeffs(pm1)[0] = eye(2)   #
+coeffs(pm2)[0] = A0       # set first coefficient matrix to an invertible matrix
+
 N = 100
 x = randn(ny,N)
 out = similar(x)

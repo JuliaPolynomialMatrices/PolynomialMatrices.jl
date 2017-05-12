@@ -28,4 +28,4 @@ promote_rule{T1,T2,M1,W,N}(::Type{PolyMatrix{T1,M1,Val{W},N}},
   ::Type{AbstractArray{T2,N}}) = PolyMatrix{promote_type(T1, T2), M1, Val{W}, N}
 
 convert{T1,T2,M1,W,N}(::Type{PolyMatrix{T1,M1,Val{W},N}},
-  p::AbstractArray{T2,N}) = PolyMatrx(p, size(p), Val{W})
+  p::AbstractArray{T2,N}) = PolyMatrix(p, size(p), Val{W})

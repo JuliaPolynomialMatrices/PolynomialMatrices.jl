@@ -26,7 +26,7 @@ end
 function _truncate!{T,M,N}(coeffs::SortedDict{Int,M,ForwardOrdering},
   dims::NTuple{N,Int}, ::Type{T},
   ϵ::Real=Base.rtoldefault(real(T))*prod(dims)*length(coeffs))
-  v1 = first(coeffs)[end]
+  v1 = coeffs[first(keys(coeffs))]
   for (st,k,v) in semitokens(coeffs)
     nonz = true
     for i in eachindex(v)
