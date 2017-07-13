@@ -40,7 +40,7 @@ function _add{T1,M1,W,N,T2<:Poly}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
   vr    = v1+v2
   M     = typeof(vr)
 
-  cr  = SortedDict{Int,M}()
+  cr  = SortedDict(Dict{Int,M}())
   sᵢ  = intersect(_keys(c1), _keys(c2))
   s₁  = setdiff(_keys(c1), sᵢ)
   s₂  = setdiff(_keys(c2), sᵢ)
@@ -63,7 +63,7 @@ end
 
 
 function -{T1,M1,W,N}(p::PolyMatrix{T1,M1,Val{W},N})
-  cr = SortedDict{Int,M1}()
+  cr = SortedDict(Dict{Int,M1}())
   for (k,v) in coeffs(p)
     insert!(cr, k, -v)
   end
@@ -116,7 +116,7 @@ function _mulconv{T1,M1,W,T2,M2,N}(p1::PolyMatrix{T1,M1,Val{W},2},
   _,v2  = first(c2) # for polynomialmatrices it returns key value pair
   vr    = v1*v2
   M     = typeof(vr)
-  cr    = SortedDict{Int,M}()
+  cr    = SortedDict(Dict{Int,M}())
 
   # find all new powers k1+k2 and corresponding k1, k2
   klist = Dict{Int,Vector{Tuple{Int,Int}}}()
@@ -144,7 +144,7 @@ function _mulconv{T1,M1,W,N,T2<:Poly}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
   v2    = first(c2) # for polynomialmatrices it returns key value pair
   vr    = v1*v2
   M     = typeof(vr)
-  cr    = SortedDict{Int,M}()
+  cr    = SortedDict(Dict{Int,M}())
 
   # find all new powers k1+k2 and corresponding k1, k2
   klist = Dict{Int,Vector{Tuple{Int,Int}}}()
@@ -271,7 +271,7 @@ function _add{T1,M1,W,N,T2<:Number}(p1::PolyMatrix{T1,M1,Val{W},N}, v2::T2)
   c1    = coeffs(p1)
   _,v1  = first(c1)    # for polynomials first(c1) returns index of first element
   M     = typeof(similar(v1, T))
-  cr    = SortedDict{Int,M}()
+  cr    = SortedDict(Dict{Int,M}())
 
   for (k1,v1) in coeffs(p1)
     insert!(cr, k1, v1)
@@ -291,7 +291,7 @@ function _mul{T1,M1,W,N,T2<:Number}(p1::PolyMatrix{T1,M1,Val{W},N}, v2::T2)
   c1    = coeffs(p1)
   _,v1  = first(c1) # for polynomials first(c1) returns index of first element
   M     = typeof(similar(v1, T))
-  cr    = SortedDict{Int,M}()
+  cr    = SortedDict(Dict{Int,M}())
 
   for (k1,v1) in coeffs(p1)
     insert!(cr, k1, v1*v2)

@@ -89,7 +89,7 @@ end
 function PolyMatrix{T,N,W}(PM::AbstractArray{Poly{T},N}, ::Type{Val{W}})
   N <= 2 || error("PolyMatrix: higher order arrays not supported at this point")
   M = typeof(similar(PM, T)) # NOTE: Is there a more memory-efficient way to obtain M?
-  c = SortedDict{Int,M}()
+  c = SortedDict(Dict{Int,M}())
   # find the union of all index sets of all polynomials in the matrix PM
   S = Set{Int}()
   for p in PM
@@ -134,7 +134,7 @@ function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int}, ::Type{Val{W}})
     throw(DomainError())
   end
   p0 = dn > 0 ? p0 = A[1:ny] : zeros(eltype(A), dims)
-  c  = SortedDict{Int,typeof(p0)}()
+  c  = SortedDict(Dict{Int,typeof(p0)}())
   insert!(c, 0, p0)
   for k = 1:dn-1
     p = A[k*ny+(1:ny)]
@@ -155,7 +155,7 @@ function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int,Int}, ::Type{Val{W
     throw(DomainError())
   end
   p0 = dn > 0 ? A[1:ny, :] : zeros(eltype(A),dims)
-  c  = SortedDict{Int,typeof(p0)}()
+  c  = SortedDict(Dict{Int,typeof(p0)}())
   for k = 0:dn-1
     idx = reverse ? (dn-k-1)*ny+(1:ny) : k*ny+(1:ny)
     v = A[idx, :]
@@ -175,7 +175,7 @@ function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int,Int,Int}, ::Type{V
   end
   dn = dims[3]
   p0 = A[:, :, 1]
-  c  = SortedDict{Int,typeof(p0)}()
+  c  = SortedDict(Dict{Int,typeof(p0)}())
   insert!(c, 0, p0)
   for k = 1:dn-1
     p = A[:, :, k+1]
