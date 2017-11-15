@@ -142,7 +142,7 @@ N = U[3:4,1:2]
 D = U[3:4,3:4]
 @test isapprox(N*Dᵣ,D*Nᵣ)
 
-# try to get back rft from obtained lft
+# try to get back rfd from obtained lfd
 lmfd2 = hcat(-N,D)
 
 @test vecnorm(lmfd2*rmfd) < 1e-14
