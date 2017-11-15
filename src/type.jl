@@ -66,7 +66,7 @@ end
 
 function PolyMatrix{M<:AbstractArray,W}(d::Dict{Int,M}, var::Type{Val{W}})
   if length(d) ≤ 0
-    warn("PolyMatrix: lengt(d) == 0")
+    warn("PolyMatrix: length(d) == 0")
     throw(DomainError())
   end
   c = SortedDict(d)

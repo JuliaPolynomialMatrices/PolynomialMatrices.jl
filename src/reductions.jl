@@ -345,13 +345,16 @@ end
 function col_degree{T,M,O,N}(p::PolyMatrix{T,M,O,N})
   max_deg = degree(p)
   num_col = size(p,2)
+  c       = coeffs(p)
 
   k = fill(-1,1,num_col)
   for i = max_deg:-1:0
-    v = coeffs(p)[i]
-    for j = 1:num_col
-      if k[j] < 0 && !all(v[:,j] .== zero(T))
-        k[j] = i
+    if haskey(c,i)
+      v = c[i]
+      for j = 1:num_col
+        if k[j] < 0 && !all(v[:,j] .== zero(T))
+          k[j] = i
+        end
       end
     end
   end
@@ -362,13 +365,16 @@ end
 function row_degree{T,M,O,N}(p::PolyMatrix{T,M,O,N})
   max_deg = degree(p)
   num_row = size(p,1)
+  c       = coeffs(p)
 
   k = fill(-1,num_row,1)
   for i = max_deg:-1:0
-    v = coeffs(p)[i]
-    for j = 1:num_row
-      if k[j] < 0 && !all(v[j,:] .== zero(T))
-        k[j] = i
+    if haskey(c,i)
+      v = c[i]
+      for j = 1:num_row
+        if k[j] < 0 && !all(v[j,:] .== zero(T))
+          k[j] = i
+        end
       end
     end
   end
@@ -380,15 +386,18 @@ end
 function high_col_deg_matrix{T,M,O,N}(p::PolyMatrix{T,M,O,N})
   max_deg = degree(p)
   num_col = size(p,2)
+  c       = coeffs(p)
 
   k   = fill(-1,1,num_col)
   Phc = zeros(T,size(p))
   for i = max_deg:-1:0
-    c = coeffs(p)[i]
-    for j = 1:num_col
-      if k[j] < 0 && !all(c[:,j] .== zero(T))
-        k[j] = i
-        Phc[:,j] = c[:,j]
+    if haskey(c,i)
+      v = c[i]
+      for j = 1:num_col
+        if k[j] < 0 && !all(v[:,j] .== zero(T))
+          k[j] = i
+          Phc[:,j] = v[:,j]
+        end
       end
     end
   end
@@ -400,15 +409,18 @@ end
 function high_row_deg_matrix{T,M,O,N}(p::PolyMatrix{T,M,O,N})
   max_deg = degree(p)
   num_row = size(p,1)
+  c       = coeffs(p)
 
   k   = fill(-1,num_row,1)
   Phr = zeros(size(p))
   for i = max_deg:-1:0
-    c = coeffs(p)[i]
-    for j = 1:num_row
-      if k[j] < 0 && !all(c[j,:] .== zero(T))
-        k[j] = i
-        Phr[j,:] = c[j,:]
+    if haskey(c,i)
+      v = c[i]
+      for j = 1:num_row
+        if k[j] < 0 && !all(v[j,:] .== zero(T))
+          k[j] = i
+          Phr[j,:] = v[j,:]
+        end
       end
     end
   end
@@ -439,7 +451,7 @@ function colred{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
     error("colred: Polynomial matrix is not full column rank")
 
   p_temp = copy(p)
-  c       = p_temp.coeffs          # Dictionary of coefficient matrices of p
+  c       = coeffs(p_temp)         # Dictionary of coefficient matrices of p
   num_col = N < 2 ? 1 : size(p,2)  # Number of columns of p
   U       = PolyMatrix(eye(T,num_col), Val{W})
 
