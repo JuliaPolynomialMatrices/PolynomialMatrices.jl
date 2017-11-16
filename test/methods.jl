@@ -15,8 +15,10 @@ pm3 = PolyMatrix(m3)
 pm4 = PolyMatrix(m4)
 pm5 = PolyMatrix(m5)
 pm6 = PolyMatrix(eye(2), :s)
+pm7 = PolyMatrix(eye(2), :z)
 
 @test pm1 != pm2 != pm3 != pm4 != pm5
+@test pm6 != pm7
 
 @test !isapprox(pm2,pm3)
 @test !isapprox(pm3,pm4; rtol=0.01)
@@ -38,8 +40,6 @@ PolyB = PolyMatrix(B, (2,2), :s)
 @test pm2 == copy(pm2)
 @test pm1 != pm2
 @test pm1 != PolyB
-
-
 
 # different variables
 B = [0. 1; 1 1]
@@ -66,7 +66,13 @@ pm2 = copy(pm1)
 
 # test similar
 @test similar(pm1)                      == PolyMatrix(zeros(Int,2,2))
+@test similar(pm1, (2))                 == PolyMatrix(zeros(Int,2))
+@test similar(pm1, (2,3))               == PolyMatrix(zeros(Int,2,3))
 @test similar(pm1, Int)                 == PolyMatrix(zeros(Int,2,2))
+
+sm1 = similar(pm1, Float64, (2,3))
+@test sm1         == PolyMatrix(zeros(Float64,2,3))
+@test typeof(sm1) == typeof(PolyMatrix(zeros(Float64,2,3)))
 #@inferred similar(pm1)
 
 @test similar(pm1, Poly{Float64})       == PolyMatrix(zeros(Float64,2,2))
@@ -136,11 +142,51 @@ t = pm1[1:2,2:2]
 #@inferred pm1[1:2,2:2]
 
 # test setindex!
+p1  = Poly([0, 1])
+p2  = Poly([2,1,3])
+p3  = Poly([1,1,2])
+pm1 = PolyMatrix([p1 p2; p2 p1])
 @test_throws InexactError pm1[1] = Poly([1.5])
 pm1[1] = p3
 @test coeffs(pm1[1]) ≈ coeffs(p3)
 
+pm1[1,2] = p3
+@test coeffs(pm1[1,2]) ≈ coeffs(p3)
+
+pm1[1:2,1:2] = [p3 p3; p3 p3]
+@test coeffs(pm1[3]) ≈ coeffs(p3)
+@test coeffs(pm1[4]) ≈ coeffs(p3)
+
+# insert numbers
+pm1[1] = 1
+@test pm1[1] ≈ 1
+
+pm1[1,2] = 1
+@test pm1[1,2] ≈ 1
+
+pm1[3:4] = [1 1]
+@test pm1[3] ≈ 1
+
+pm2 = PolyMatrix([p1 p1; p1 p1])
+pm2[1] = 1
+@test pm2[1] ≈ 1
+
+pm2 = PolyMatrix([p1 p1; p1 p1])
+pm2[1,2] = 1
+@test pm2[1,2] ≈ 1
+
+pm2 = PolyMatrix([p1 p1; p1 p1])
+pm2[1:2,1:2] = [1 1; 1 1]
+@test pm2[3] ≈ 1
+
+# test insert!
+pmins = PolyMatrix([p1 p2; p2 p1])
+insert!(pmins, 4, ones(2,2))
+@test coeffs(pmins)[4] == ones(2,2)
+@test_throws DomainError insert!(pmins, 5, ones(3))
+
 # test iteration
+pm2 = PolyMatrix(A, (ny,nu))
 for elem in pm2
   @test degree(elem) == degreepm2
 end

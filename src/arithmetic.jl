@@ -78,8 +78,6 @@ function -{T1,M1,W1,W2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{
 end
 
 # heuristic used below was found by benchmarking
-# (number of matrix multiplications of _mul is length(c1)*length(c2)
-# (number of matrix multiplications of _mulfft is degree(p1)+degree(p2)
 function *{T1,M1,W,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},2}, p2::PolyMatrix{T2,M2,Val{W},2})
   if size(p1,2) ≠ size(p2,1)
     warn("*(p1,p2): size(p1,2) ≠ size(p2,1)")
@@ -97,15 +95,13 @@ function *{T1,M1,W,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},2}, p2::PolyMatrix{T2,M2,V
 end
 
 function _mul{T1,T2}(p1::T1, p2::T2)
-  c1     = coeffs(p1)
-  c2     = coeffs(p2)
-  if length(c1)*length(c2) > 5*(degree(p1)+degree(p2))
+  degree_cutoff = 45
+  if degree(p1)+degree(p2) > degree_cutoff
     return _mulfft(p1,p2)
   else
     return _mulconv(p1,p2)
   end
 end
-
 
 function _mulconv{T1,M1,W,T2,M2,N}(p1::PolyMatrix{T1,M1,Val{W},2},
   p2::PolyMatrix{T2,M2,Val{W},N})
@@ -135,6 +131,7 @@ function _mulconv{T1,M1,W,T2,M2,N}(p1::PolyMatrix{T1,M1,Val{W},2},
   return PolyMatrix(cr, size(vr), Val{W})
 end
 
+_mulconv{T1,M1,W,N,T2<:Poly}(p1::T2, p2::PolyMatrix{T1,M1,Val{W},N}) = _mulconv(p2,p1)
 
 function _mulconv{T1,M1,W,N,T2<:Poly}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
   # figure out return type
@@ -194,6 +191,8 @@ function _mulfft{T1,M1,W,T2,M2,N}(p1::PolyMatrix{T1,M1,Val{W},2},
   ar = _truncate(T,ifft(a,3))
   return PolyMatrix(ar, Val{W})
 end
+
+_mulfft{T1,M1,W,N,T2}(p1::Poly{T2}, p2::PolyMatrix{T1,M1,Val{W},N}) = _mulfft(p2,p1)
 
 function _mulfft{T1,M1,W,N,T2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::Poly{T2})
   T     = promote_type(T1, T2)

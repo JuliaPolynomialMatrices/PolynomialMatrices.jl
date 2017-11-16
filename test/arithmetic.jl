@@ -77,11 +77,13 @@ v2  = ones(4)
 #@inferred a1+pm1
 
 # fft multiplication
-A = zeros(Int,2,2,12)
-for idx in 1:12
-  A[:,:,idx] = eye(2)
-end
-@test eltype(PolyMatrix(A)*PolyMatrix(A)) == Poly{Int}
+n = 2
+d = 25
+pmf = PolyMatrix(randn(n,n,d), (n,n,d), :s)
+pf  = Poly(randn(d), :s)
+@test eltype(pmf*pmf) == Poly{Float64}
+@test eltype(pmf*pf)  == Poly{Float64}
+@test pf*pmf  == pmf*pf
 
 @test pm1*v1 ≈ PolyMatrix(m*v1)
 @test_throws DomainError pm1*v2
