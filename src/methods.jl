@@ -113,9 +113,6 @@ function getindex{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}, I...)
   PolyMatrix(cr, size(vr), Val{W})
 end
 
-_PolyMatrix{T,N}(p::Array{Poly{T},N}) = PolyMatrix(p)
-_PolyMatrix{T}(p::Poly{T})            = p
-
 # setindex!
 function setindex!{T,M,W,N,U}(Pm::PolyMatrix{T,M,Val{W},N}, p::Poly{U}, i::Integer)
   @compat @boundscheck checkbounds(Pm, i)
@@ -198,14 +195,12 @@ end
 function setindex!{T,M,W,N,T2<:Number}(Pm::PolyMatrix{T,M,Val{W},N}, p::T2, i::Integer)
   @compat @boundscheck checkbounds(Pm, i)
   c = coeffs(Pm)
-  if haskey(c,0)
-    _,v0 = c[0]
-    v0[i] = p
-    # NOTE should we delete a key if all elements are made zero?
-    # if all(v .== zero(T))
-    #   delete!(Pmc, idx-1)
-    # end
-  else
+  hasconst = false
+  for (k,v) in c
+    v[i]      = k == 0 ? convert(T, p) : zero(T)
+    hasconst |= k == 0
+  end
+  if !hasconst
     v0 = spzeros(T, Pm.dims...)
     v0[i] = p
     insert!(c, 0, v0)
@@ -216,14 +211,12 @@ function setindex!{T,M,W,T2<:Number}(Pm::PolyMatrix{T,M,Val{W},2}, p::T2,
     i::Integer, j::Integer)
   @compat @boundscheck checkbounds(Pm, i, j)
   c = coeffs(Pm)
-  if haskey(c,0)
-    v0      = c[0]
-    v0[i,j] = p
-    # NOTE should we delete a key if all elements are made zero?
-    # if all(v .== zero(T))
-    #   delete!(Pmc, idx-1)
-    # end
-  else
+  hasconst = false
+  for (k,v) in c
+    v[i,j]      = k == 0 ? convert(T, p) : zero(T)
+    hasconst |= k == 0
+  end
+  if !hasconst
     v0 = spzeros(T, Pm.dims...)
     v0[i,j] = p
     insert!(c, 0, v0)
@@ -234,22 +227,25 @@ function setindex!{T,M,W,N,T2<:Number}(Pm::PolyMatrix{T,M,Val{W},N}, p::T2,
     I...)
   @compat @boundscheck checkbounds(Pm, I...)
   c = coeffs(Pm)
-  if haskey(c,0)
-    _,v0 = c[0]
-    v0[I...] = p
-    # NOTE should we delete a key if all elements are made zero?
-    # if all(v .== zero(T))
-    #   delete!(Pmc, idx-1)
-    # end
-  else
+  hasconst = false
+  for (k,v) in c
+    v[I...]      = k == 0 ? convert(T, p) : zero(T)
+    hasconst |= k == 0
+  end
+  if !hasconst
     v0 = spzeros(T, Pm.dims...)
     v0[I...] = p
     insert!(c, 0, v0)
   end
 end
 
+# insert!
 function insert!{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}, k::Int, A)
-  insert!(coeffs(p), k, A)
+  if size(A) != size(p)
+    warn("coefficient matrix to insert does not have the same size as polynomial matrix")
+    throw(DomainError())
+  end
+  insert!(coeffs(p), k, convert(M,A))
 end
 
 ## Obtain dictionary of coefficient matrices
