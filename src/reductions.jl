@@ -412,7 +412,7 @@ function high_row_deg_matrix{T,M,O,N}(p::PolyMatrix{T,M,O,N})
   c       = coeffs(p)
 
   k   = fill(-1,num_row,1)
-  Phr = zeros(size(p))
+  Phr = zeros(T,size(p))
   for i = max_deg:-1:0
     if haskey(c,i)
       v = c[i]
