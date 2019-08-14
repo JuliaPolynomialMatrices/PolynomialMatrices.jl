@@ -10,7 +10,7 @@ immutable PolyMatrix{T,M,W,N} <: AbstractArray{Polynomials.Poly{T},N}
   coeffs::SortedDict{Int,M,ForwardOrdering}
   dims::NTuple{N,Int}
 
-  @compat function (::Type{PolyMatrix}){M,N,W}(
+  function (::Type{PolyMatrix}){M,N,W}(
       coeffs::SortedDict{Int,M,ForwardOrdering}, dims::NTuple{N,Int}, ::Type{Val{W}})
     T = eltype(M)
     _truncate!(coeffs, dims, T)
@@ -44,7 +44,7 @@ function _truncate!{T,M,N}(coeffs::SortedDict{Int,M,ForwardOrdering},
 end
 
 # Evaluation of a polynomial matrix at a specific value x
-@compat function (p::PolyMatrix{T,M,Val{W},N}){T,M,W,N,S}(x::S)
+function (p::PolyMatrix{T,M,Val{W},N}){T,M,W,N,S}(x::S)
   degree(p) == 0 && return convert(M, zeros(T,size(p)...))*zero(S)
 
   c    = p.coeffs
@@ -61,7 +61,7 @@ end
 
 # Outer constructor
 function PolyMatrix{M<:AbstractArray}(d::Dict{Int,M}, var::SymbolLike=:x)
-  PolyMatrix(d, Val{@compat Symbol(var)})
+  PolyMatrix(d, Val{Symbol(var)})
 end
 
 function PolyMatrix{M<:AbstractArray,W}(d::Dict{Int,M}, var::Type{Val{W}})
@@ -83,7 +83,7 @@ end
 function PolyMatrix{M1<:AbstractArray}(PM::M1)
   var = countnz(PM) > 0 ? PM[findfirst(x -> x != zero(x), PM)].var :
                          Poly(T[]).var       # default to Polys default variable
-  PolyMatrix(PM, Val{@compat Symbol(var)})
+  PolyMatrix(PM, Val{Symbol(var)})
 end
 
 function PolyMatrix{T,N,W}(PM::AbstractArray{Poly{T},N}, ::Type{Val{W}})
@@ -114,7 +114,7 @@ end
 # TODO should we simplify these constructors somehow
 # Note: There is now copy in the following constructors
 function PolyMatrix{T<:Number}(A::AbstractArray{T}, var::SymbolLike=:x)
-  return PolyMatrix(A, size(A), Val{@compat Symbol(var)})
+  return PolyMatrix(A, size(A), Val{Symbol(var)})
 end
 
 function PolyMatrix{T<:Number, W}(A::AbstractArray{T}, ::Type{Val{W}})
@@ -123,7 +123,7 @@ end
 
 # TODO should we support vectors or only matrices
 function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int}, var::SymbolLike=:x)
-  PolyMatrix(A, dims, Val{@compat Symbol(var)})
+  PolyMatrix(A, dims, Val{Symbol(var)})
 end
 
 function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int}, ::Type{Val{W}})
@@ -144,7 +144,7 @@ function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int}, ::Type{Val{W}})
 end
 
 function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int}, var::SymbolLike=:x; reverse::Bool=false)
-  PolyMatrix(A, dims, Val{@compat Symbol(var)}; reverse=reverse)
+  PolyMatrix(A, dims, Val{Symbol(var)}; reverse=reverse)
 end
 
 function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int,Int}, ::Type{Val{W}}; reverse::Bool=false)
@@ -165,7 +165,7 @@ function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int,Int}, ::Type{Val{W
 end
 
 function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int,Int}, var::SymbolLike=:x)
-  PolyMatrix(A, dims, Val{@compat Symbol(var)})
+  PolyMatrix(A, dims, Val{Symbol(var)})
 end
 
 function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int,Int,Int}, ::Type{Val{W}})

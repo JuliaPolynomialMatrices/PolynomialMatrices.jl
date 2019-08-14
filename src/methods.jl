@@ -69,7 +69,7 @@ end
       variable(p::PolyMatrix)
   return variable of `p` as a `Poly` object.
 """
-variable{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}) = variable(T, @compat Symbol(W))
+variable{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}) = variable(T, Symbol(W))
 
 # Copying
 function copy{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
@@ -86,7 +86,7 @@ function Base.checkbounds{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}, I...)
 end
 
 function getindex{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N}, i::Integer)
-  @compat @boundscheck checkbounds(p, i)
+  @boundscheck checkbounds(p, i)
   vr = zeros(T, degree(p)+1)
   for (k,v) in coeffs(p)
     vr[k+1] = v[i]
@@ -115,7 +115,7 @@ end
 
 # setindex!
 function setindex!{T,M,W,N,U}(Pm::PolyMatrix{T,M,Val{W},N}, p::Poly{U}, i::Integer)
-  @compat @boundscheck checkbounds(Pm, i)
+  @boundscheck checkbounds(Pm, i)
   c = coeffs(p)
   Pmc = coeffs(Pm)
   S = Set(eachindex(coeffs(p)))
@@ -141,7 +141,7 @@ end
 
 function setindex!{T,M,W,U}(Pm::PolyMatrix{T,M,Val{W},2}, p::Poly{U},
     i::Integer, j::Integer)
-  @compat @boundscheck checkbounds(Pm, i, j)
+  @boundscheck checkbounds(Pm, i, j)
   c = coeffs(p)
   Pmc = coeffs(Pm)
   S = Set(eachindex(coeffs(p)))
@@ -167,7 +167,7 @@ end
 
 function setindex!{T,M,W,N,U}(Pm::PolyMatrix{T,M,Val{W},N}, p::Poly{U},
     I...)
-  @compat @boundscheck checkbounds(Pm, I...)
+  @boundscheck checkbounds(Pm, I...)
   c = coeffs(p)
   Pmc = coeffs(Pm)
   S = Set(eachindex(coeffs(p)))
@@ -193,7 +193,7 @@ end
 
 # setindex for number
 function setindex!{T,M,W,N,T2<:Number}(Pm::PolyMatrix{T,M,Val{W},N}, p::T2, i::Integer)
-  @compat @boundscheck checkbounds(Pm, i)
+  @boundscheck checkbounds(Pm, i)
   c = coeffs(Pm)
   hasconst = false
   for (k,v) in c
@@ -209,7 +209,7 @@ end
 
 function setindex!{T,M,W,T2<:Number}(Pm::PolyMatrix{T,M,Val{W},2}, p::T2,
     i::Integer, j::Integer)
-  @compat @boundscheck checkbounds(Pm, i, j)
+  @boundscheck checkbounds(Pm, i, j)
   c = coeffs(Pm)
   hasconst = false
   for (k,v) in c
@@ -225,7 +225,7 @@ end
 
 function setindex!{T,M,W,N,T2<:Number}(Pm::PolyMatrix{T,M,Val{W},N}, p::T2,
     I...)
-  @compat @boundscheck checkbounds(Pm, I...)
+  @boundscheck checkbounds(Pm, I...)
   c = coeffs(Pm)
   hasconst = false
   for (k,v) in c
