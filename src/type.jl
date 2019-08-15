@@ -6,26 +6,26 @@
 #
 # NOTE: The constructors should make sure that the highest coefficient matrix is nonzero
 # NOTE: For dense polynomial matrices, defining `coeffs` as a 3-D array could be much more efficient
-immutable PolyMatrix{T,M,W,N} <: AbstractArray{Polynomials.Poly{T},N}
+struct PolyMatrix{T,M,W,N} <: AbstractArray{Polynomials.Poly{T},N}
   coeffs::SortedDict{Int,M,ForwardOrdering}
   dims::NTuple{N,Int}
 
-  @compat function (::Type{PolyMatrix}){M,N,W}(
-      coeffs::SortedDict{Int,M,ForwardOrdering}, dims::NTuple{N,Int}, ::Type{Val{W}})
+  @compat function (::Type{PolyMatrix})(
+      coeffs::SortedDict{Int,M,ForwardOrdering}, dims::NTuple{N,Int}, ::Type{Val{W}}) where {M,N,W}
     T = eltype(M)
     _truncate!(coeffs, dims, T)
     new{T,M,Val{W},N}(coeffs, dims)
   end
 end
 
-function truncate!{T,M,V,N}(p::PolyMatrix{T,M,Val{V},N},
-  ϵ=Base.rtoldefault(T)*length(p)*degree(p))
+function truncate!(p::PolyMatrix{T,M,Val{V},N},
+  ϵ=Base.rtoldefault(T)*length(p)*degree(p)) where {T,M,V,N}
   _truncate!(coeffs(p), size(p), T, ϵ)
 end
 
-function _truncate!{T,M,N}(coeffs::SortedDict{Int,M,ForwardOrdering},
+function _truncate!(coeffs::SortedDict{Int,M,ForwardOrdering},
   dims::NTuple{N,Int}, ::Type{T},
-  ϵ::Real=Base.rtoldefault(real(T))*prod(dims)*length(coeffs))
+  ϵ::Real=Base.rtoldefault(real(T))*prod(dims)*length(coeffs)) where {T,M,N}
   v1 = coeffs[first(keys(coeffs))]
   for (st,k,v) in semitokens(coeffs)
     nonz = true
@@ -44,7 +44,7 @@ function _truncate!{T,M,N}(coeffs::SortedDict{Int,M,ForwardOrdering},
 end
 
 # Evaluation of a polynomial matrix at a specific value x
-@compat function (p::PolyMatrix{T,M,Val{W},N}){T,M,W,N,S}(x::S)
+@compat function (p::PolyMatrix{T,M,Val{W},N})(x::S) where {T,M,W,N,S}
   degree(p) == 0 && return convert(M, zeros(T,size(p)...))*zero(S)
 
   c    = p.coeffs
@@ -60,11 +60,11 @@ end
 end
 
 # Outer constructor
-function PolyMatrix{M<:AbstractArray}(d::Dict{Int,M}, var::SymbolLike=:x)
+function PolyMatrix(d::Dict{Int,M}, var::SymbolLike=:x) where M<:AbstractArray
   PolyMatrix(d, Val{@compat Symbol(var)})
 end
 
-function PolyMatrix{M<:AbstractArray,W}(d::Dict{Int,M}, var::Type{Val{W}})
+function PolyMatrix(d::Dict{Int,M}, var::Type{Val{W}}) where {M<:AbstractArray,W}
   if length(d) ≤ 0
     warn("PolyMatrix: length(d) == 0")
     throw(DomainError())
@@ -80,13 +80,13 @@ function PolyMatrix{M<:AbstractArray,W}(d::Dict{Int,M}, var::Type{Val{W}})
   PolyMatrix(c, (n,m), Val{W})
 end
 
-function PolyMatrix{M1<:AbstractArray}(PM::M1)
+function PolyMatrix(PM::M1) where M1<:AbstractArray
   var = countnz(PM) > 0 ? PM[findfirst(x -> x != zero(x), PM)].var :
                          Poly(T[]).var       # default to Polys default variable
   PolyMatrix(PM, Val{@compat Symbol(var)})
 end
 
-function PolyMatrix{T,N,W}(PM::AbstractArray{Poly{T},N}, ::Type{Val{W}})
+function PolyMatrix(PM::AbstractArray{Poly{T},N}, ::Type{Val{W}}) where {T,N,W}
   N <= 2 || error("PolyMatrix: higher order arrays not supported at this point")
   M = typeof(similar(PM, T)) # NOTE: Is there a more memory-efficient way to obtain M?
   c = SortedDict(Dict{Int,M}())
@@ -113,20 +113,20 @@ end
 
 # TODO should we simplify these constructors somehow
 # Note: There is now copy in the following constructors
-function PolyMatrix{T<:Number}(A::AbstractArray{T}, var::SymbolLike=:x)
+function PolyMatrix(A::AbstractArray{T}, var::SymbolLike=:x) where T<:Number
   return PolyMatrix(A, size(A), Val{@compat Symbol(var)})
 end
 
-function PolyMatrix{T<:Number, W}(A::AbstractArray{T}, ::Type{Val{W}})
+function PolyMatrix(A::AbstractArray{T}, ::Type{Val{W}}) where {T<:Number, W}
   return PolyMatrix(A, size(A), Val{W})
 end
 
 # TODO should we support vectors or only matrices
-function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int}, var::SymbolLike=:x)
+function PolyMatrix(A::M, dims::Tuple{Int}, var::SymbolLike=:x) where M<:AbstractArray
   PolyMatrix(A, dims, Val{@compat Symbol(var)})
 end
 
-function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int}, ::Type{Val{W}})
+function PolyMatrix(A::M, dims::Tuple{Int}, ::Type{Val{W}}) where {M<:AbstractArray,W}
   ny = dims[1]
   dn = div(size(A,1), ny)
   if rem(size(A,1), ny) != 0
@@ -143,11 +143,11 @@ function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int}, ::Type{Val{W}})
   return PolyMatrix(c, dims, Val{W})
 end
 
-function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int}, var::SymbolLike=:x; reverse::Bool=false)
+function PolyMatrix(A::M, dims::Tuple{Int,Int}, var::SymbolLike=:x; reverse::Bool=false) where M<:AbstractArray
   PolyMatrix(A, dims, Val{@compat Symbol(var)}; reverse=reverse)
 end
 
-function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int,Int}, ::Type{Val{W}}; reverse::Bool=false)
+function PolyMatrix(A::M, dims::Tuple{Int,Int}, ::Type{Val{W}}; reverse::Bool=false) where {M<:AbstractArray,W}
   ny = dims[1]
   dn = div(size(A,1), ny)
   if rem(size(A,1), ny) != 0 || size(A,2) != dims[2]
@@ -164,11 +164,11 @@ function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int,Int}, ::Type{Val{W
   return PolyMatrix(c, dims, Val{W})
 end
 
-function PolyMatrix{M<:AbstractArray}(A::M, dims::Tuple{Int,Int,Int}, var::SymbolLike=:x)
+function PolyMatrix(A::M, dims::Tuple{Int,Int,Int}, var::SymbolLike=:x) where M<:AbstractArray
   PolyMatrix(A, dims, Val{@compat Symbol(var)})
 end
 
-function PolyMatrix{M<:AbstractArray,W}(A::M, dims::Tuple{Int,Int,Int}, ::Type{Val{W}})
+function PolyMatrix(A::M, dims::Tuple{Int,Int,Int}, ::Type{Val{W}}) where {M<:AbstractArray,W}
   if size(A) != dims && dims[3] < 1
     warn("PolyMatrix: dimensions are not consistent")
     throw(DomainError())
