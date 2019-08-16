@@ -5,6 +5,7 @@ module PolynomialMatrices
 using DataStructures
 using Polynomials
 using Compat
+using LinearAlgebra
 
 # Import functions for overloading
 import Polynomials: coeffs, degree, variable
