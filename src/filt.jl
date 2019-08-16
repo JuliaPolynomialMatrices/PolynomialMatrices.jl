@@ -51,7 +51,7 @@ function filt!(out::AbstractArray{H}, b::PolyMatrix{T,M1,W,N},
 end
 
 function _filt_iir!(out::AbstractArray{T}, b::PolyMatrix{T,M1,W,N},
-  a::PolyMatrix{T,M2,W,N}, x::AbstractArray{S}, si::AbstractArray{G}) {T,S,M1,M2,W,N,G}
+  a::PolyMatrix{T,M2,W,N}, x::AbstractArray{S}, si::AbstractArray{G}) where {T,S,M1,M2,W,N,G}
   silen = size(si,2)
   bc = coeffs(b)
   ac = coeffs(a)
