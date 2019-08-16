@@ -18,10 +18,9 @@ import Base: transpose, ctranspose
 import Base: summary
 import Base: insert!
 import Base: checkbounds
-import Base: filt!, filt
 import Compat.view
 import Base: isapprox, ==, isequal, hash
-import LinearAlgebra: det, norm, vecnorm, rank
+import LinearAlgebra: det, norm, vecnorm, rank, filt!, filt
 
 # Export
 export PolyMatrix
