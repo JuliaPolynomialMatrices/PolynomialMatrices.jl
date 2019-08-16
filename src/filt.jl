@@ -1,15 +1,15 @@
-function _zerosi{S,G}(b::PolyMatrix{S}, a::PolyMatrix{G}, T)
+function _zerosi(b::PolyMatrix{S}, a::PolyMatrix{G}, T) where {S,G}
   m  = max(degree(a), degree(b))
   si = zeros(promote_type(S, G, T), size(a,1), m)
 end
 
-function filt{T,S,M1,M2,W,N,G}(b::PolyMatrix{T,M1,W,N}, a::PolyMatrix{S,M2,W,N},
-  x::AbstractArray{G}, si=_zerosi(b, a, G))
+function filt(b::PolyMatrix{T,M1,W,N}, a::PolyMatrix{S,M2,W,N},
+  x::AbstractArray{G}, si=_zerosi(b, a, G)) where {T,S,M1,M2,W,N,G}
   filt!(Array{promote_type(T, G, S)}(size(a,1), size(x,2)), b, a, x, si)
 end
 
-function filt!{H,T,S,M1,M2,W,N,G}(out::AbstractArray{H}, b::PolyMatrix{T,M1,W,N},
-  a::PolyMatrix{S,M2,W,N}, x::AbstractArray{G}, si=_zerosi(b, a, G))
+function filt!(out::AbstractArray{H}, b::PolyMatrix{T,M1,W,N},
+  a::PolyMatrix{S,M2,W,N}, x::AbstractArray{G}, si=_zerosi(b, a, G)) where {H,T,S,M1,M2,W,N,G}
 
   as = degree(a)
   bs = degree(b)
@@ -50,8 +50,8 @@ function filt!{H,T,S,M1,M2,W,N,G}(out::AbstractArray{H}, b::PolyMatrix{T,M1,W,N}
   return out
 end
 
-function _filt_iir!{T,S,M1,M2,W,N,G}(out::AbstractArray{T}, b::PolyMatrix{T,M1,W,N},
-  a::PolyMatrix{T,M2,W,N}, x::AbstractArray{S}, si::AbstractArray{G})
+function _filt_iir!(out::AbstractArray{T}, b::PolyMatrix{T,M1,W,N},
+  a::PolyMatrix{T,M2,W,N}, x::AbstractArray{S}, si::AbstractArray{G}) {T,S,M1,M2,W,N,G}
   silen = size(si,2)
   bc = coeffs(b)
   ac = coeffs(a)
@@ -80,8 +80,8 @@ function _filt_iir!{T,S,M1,M2,W,N,G}(out::AbstractArray{T}, b::PolyMatrix{T,M1,W
   truncate!(a)
 end
 
-function _filt_fir!{T,M1,W,N}(
-  out::AbstractMatrix{T}, b::PolyMatrix{T,M1,W,N}, x, si=zeros(T, size(b,1), degree(b)))
+function _filt_fir!(
+  out::AbstractMatrix{T}, b::PolyMatrix{T,M1,W,N}, x, si=zeros(T, size(b,1), degree(b))) where {T,M1,W,N}
   silen = size(si,2)
   bc = coeffs(b)
   v0 = zeros(similar(bc[first(keys(bc))]))
@@ -105,9 +105,9 @@ function _filt_fir!{T,M1,W,N}(
   truncate!(b)
 end
 
-function _filt_ar!{T,M1,W,N}(
+function _filt_ar!(
   out::AbstractMatrix{T}, a::PolyMatrix{T,M1,W,N},
-  x::AbstractArray{T}, si=zeros(T, size(a,1), degree(a)))
+  x::AbstractArray{T}, si=zeros(T, size(a,1), degree(a))) where {T,M1,W,N}
   silen = size(si,2)
   ac = coeffs(a)
   val = zeros(T, size(a,1), 1)
