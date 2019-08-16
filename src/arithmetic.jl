@@ -1,5 +1,5 @@
 ## Basic operations between polynomial matrices
-function +{T1,M1,W,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::PolyMatrix{T2,M2,Val{W},N})
+function +(p1::PolyMatrix{T1,M1,Val{W},N}, p2::PolyMatrix{T2,M2,Val{W},N}) where {T1,M1,W,N,T2,M2}
   if size(p1) ≠ size(p2)
     warn("+(p1,p2): size(p1) ≠ size(p2)")
     throw(DomainError())
@@ -7,8 +7,8 @@ function +{T1,M1,W,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::PolyMatrix{T2,M2
   _add(p1,p2)
 end
 
-function _add{T1,M1,W,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},N},
-  p2::PolyMatrix{T2,M2,Val{W},N})
+function _add(p1::PolyMatrix{T1,M1,Val{W},N},
+  p2::PolyMatrix{T2,M2,Val{W},N}) where {T1,M1,W,N,T2,M2}
   c1    = coeffs(p1)
   c2    = coeffs(p2)
   _,v1  = first(c1)
@@ -32,7 +32,7 @@ function _add{T1,M1,W,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},N},
   return PolyMatrix(cr, size(vr), Val{W})
 end
 
-function _add{T1,M1,W,N,T2<:Poly}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
+function _add(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:Poly}
   c1    = coeffs(p1)
   c2    = coeffs(p2)
   _,v1  = first(c1) # for polynomials first(c1) returns index of first element
@@ -56,13 +56,13 @@ function _add{T1,M1,W,N,T2<:Poly}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
   return PolyMatrix(cr, size(vr), Val{W})
 end
 
-function +{T1,M1,W1,W2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N})
+function +(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N}) where {T1,M1,W1,W2,N,T2,M2}
   warn("p1+p2: `p1` ($T1,$W1) and `p2` ($T2,$W2) have different variables")
   throw(DomainError())
 end
 
 
-function -{T1,M1,W,N}(p::PolyMatrix{T1,M1,Val{W},N})
+function -(p::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,W,N}
   cr = SortedDict(Dict{Int,M1}())
   for (k,v) in coeffs(p)
     insert!(cr, k, -v)
@@ -70,15 +70,15 @@ function -{T1,M1,W,N}(p::PolyMatrix{T1,M1,Val{W},N})
   return PolyMatrix(cr, size(p), Val{W})
 end
 
--{T1,M1,W,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::PolyMatrix{T2,M2,Val{W},N}) = +(p1,-p2)
+-(p1::PolyMatrix{T1,M1,Val{W},N}, p2::PolyMatrix{T2,M2,Val{W},N}) where {T1,M1,W,N,T2,M2} = +(p1,-p2)
 
-function -{T1,M1,W1,W2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N})
+function -(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N}) where {T1,M1,W1,W2,N,T2,M2}
   warn("p1-p2: `p1` ($T1,$W1) and `p2` ($T2,$W2) have different variables")
   throw(DomainError())
 end
 
 # heuristic used below was found by benchmarking
-function *{T1,M1,W,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},2}, p2::PolyMatrix{T2,M2,Val{W},2})
+function *(p1::PolyMatrix{T1,M1,Val{W},2}, p2::PolyMatrix{T2,M2,Val{W},2}) where {T1,M1,W,T2,M2}
   if size(p1,2) ≠ size(p2,1)
     warn("*(p1,p2): size(p1,2) ≠ size(p2,1)")
     throw(DomainError())
@@ -86,7 +86,7 @@ function *{T1,M1,W,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},2}, p2::PolyMatrix{T2,M2,V
   _mul(p1,p2)
 end
 
-function *{T1,M1,W,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},2}, p2::PolyMatrix{T2,M2,Val{W},1})
+function *(p1::PolyMatrix{T1,M1,Val{W},2}, p2::PolyMatrix{T2,M2,Val{W},1}) where {T1,M1,W,T2,M2}
   if size(p1,2) ≠ size(p2,1)
     warn("*(p1,p2): size(p1,2) ≠ size(p2,1)")
     throw(DomainError())
@@ -94,7 +94,7 @@ function *{T1,M1,W,T2,M2}(p1::PolyMatrix{T1,M1,Val{W},2}, p2::PolyMatrix{T2,M2,V
   _mul(p1,p2)
 end
 
-function _mul{T1,T2}(p1::T1, p2::T2)
+function _mul(p1::T1, p2::T2) where {T1,T2}
   degree_cutoff = 45
   if degree(p1)+degree(p2) > degree_cutoff
     return _mulfft(p1,p2)
@@ -103,8 +103,8 @@ function _mul{T1,T2}(p1::T1, p2::T2)
   end
 end
 
-function _mulconv{T1,M1,W,T2,M2,N}(p1::PolyMatrix{T1,M1,Val{W},2},
-  p2::PolyMatrix{T2,M2,Val{W},N})
+function _mulconv(p1::PolyMatrix{T1,M1,Val{W},2},
+  p2::PolyMatrix{T2,M2,Val{W},N}) where {T1,M1,W,T2,M2,N}
   # figure out return type
   c1    = coeffs(p1)
   c2    = coeffs(p2)
@@ -133,7 +133,7 @@ end
 
 _mulconv{T1,M1,W,N,T2<:Poly}(p1::T2, p2::PolyMatrix{T1,M1,Val{W},N}) = _mulconv(p2,p1)
 
-function _mulconv{T1,M1,W,N,T2<:Poly}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2)
+function _mulconv(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:Poly}
   # figure out return type
   c1    = coeffs(p1)
   c2    = coeffs(p2)
@@ -165,8 +165,8 @@ end
 _keys{T}(c::T) = keys(c)
 _keys{T<:AbstractArray}(c::T) = eachindex(c)-1
 
-function _mulfft{T1,M1,W,T2,M2,N}(p1::PolyMatrix{T1,M1,Val{W},2},
-  p2::PolyMatrix{T2,M2,Val{W},N})
+function _mulfft(p1::PolyMatrix{T1,M1,Val{W},2},
+  p2::PolyMatrix{T2,M2,Val{W},N}) where {T1,M1,W,T2,M2,N}
   T     = promote_type(T1, T2)
   c1    = coeffs(p1)
   c2    = coeffs(p2)
@@ -194,7 +194,7 @@ end
 
 _mulfft{T1,M1,W,N,T2}(p1::Poly{T2}, p2::PolyMatrix{T1,M1,Val{W},N}) = _mulfft(p2,p1)
 
-function _mulfft{T1,M1,W,N,T2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::Poly{T2})
+function _mulfft(p1::PolyMatrix{T1,M1,Val{W},N}, p2::Poly{T2}) where {T1,M1,W,N,T2}
   T     = promote_type(T1, T2)
   c1    = coeffs(p1)
   c2    = coeffs(p2)
@@ -220,7 +220,7 @@ function _mulfft{T1,M1,W,N,T2}(p1::PolyMatrix{T1,M1,Val{W},N}, p2::Poly{T2})
   return PolyMatrix(ar, Val{W})
 end
 
-function _fftmatrix{T1,M1,W1,N,T}(p::PolyMatrix{T1,M1,Val{W1},N}, ::Type{T}, dn::Integer)
+function _fftmatrix(p::PolyMatrix{T1,M1,Val{W1},N}, ::Type{T}, dn::Integer) where {T1,M1,W1,N,T}
   A = zeros(T, size(p)..., dn)
   for (k,v) in coeffs(p)
     A[:,:,k+1] = v
@@ -228,7 +228,7 @@ function _fftmatrix{T1,M1,W1,N,T}(p::PolyMatrix{T1,M1,Val{W1},N}, ::Type{T}, dn:
   A
 end
 
-function _fftmatrix{T1,T}(p::Poly{T1}, ::Type{T}, dn::Integer)
+function _fftmatrix(p::Poly{T1}, ::Type{T}, dn::Integer) where {T1,T}
   A = zeros(T,dn)
   c = coeffs(p)
   for i in eachindex(c)
@@ -237,35 +237,35 @@ function _fftmatrix{T1,T}(p::Poly{T1}, ::Type{T}, dn::Integer)
   A
 end
 
-function *{T1,M1,W1,W2,N,T2,M2}(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N})
+function *(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N}) where {T1,M1,W1,W2,N,T2,M2}
   warn("p1*p2: `p1` ($T1,$W1) and `p2` ($T2,$W2) have different variables")
   throw(DomainError())
 end
 
 ## Basic operations between polynomial matrices and AbstractArrays
-+{T,M1,W,N,M2<:AbstractArray}(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) = p1 + PolyMatrix(p2, Val{W})
-+{T,M1,W,N,M2<:AbstractArray}(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) = PolyMatrix(p1, Val{W}) + p2
++(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:AbstractArray} = p1 + PolyMatrix(p2, Val{W})
++(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:AbstractArray} = PolyMatrix(p1, Val{W}) + p2
 
--{T,M1,W,N,M2<:AbstractArray}(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) = p1 - PolyMatrix(p2, Val{W})
--{T,M1,W,N,M2<:AbstractArray}(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) = PolyMatrix(p1, Val{W}) - p2
+-(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:AbstractArray} = p1 - PolyMatrix(p2, Val{W})
+-(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:AbstractArray} = PolyMatrix(p1, Val{W}) - p2
 
-*{T,M1,W,N,S}(p1::PolyMatrix{T,M1,Val{W},N}, p2::AbstractArray{S,2}) = p1*PolyMatrix(p2, Val{W})
-*{T,M1,W,N,S}(p2::AbstractArray{S,2}, p1::PolyMatrix{T,M1,Val{W},N}) = PolyMatrix(p2, Val{W})*p1
+*(p1::PolyMatrix{T,M1,Val{W},N}, p2::AbstractArray{S,2}) where {T,M1,W,N,S} = p1*PolyMatrix(p2, Val{W})
+*(p2::AbstractArray{S,2}, p1::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,S} = PolyMatrix(p2, Val{W})*p1
 
-*{T,M1,W,N,S<:Number}(p1::PolyMatrix{T,M1,Val{W},N}, p2::AbstractArray{S,1}) = p1*PolyMatrix(p2, size(p2), Val{W})
+*(p1::PolyMatrix{T,M1,Val{W},N}, p2::AbstractArray{S,1}) where {T,M1,W,N,S<:Number} = p1*PolyMatrix(p2, size(p2), Val{W})
 
 ## Basic operations between polynomial matrices and polynomials
-+{T,M1,W,N,M2<:Poly}(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) = _add(p1, p2)
-+{T,M1,W,N,M2<:Poly}(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) = _add(p2, p1)
++(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Poly} = _add(p1, p2)
++(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:Poly} = _add(p2, p1)
 
--{T,M1,W,N,M2<:Poly}(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) = _add(p1, -p2)
--{T,M1,W,N,M2<:Poly}(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) = _add(-p2, p1)
+-(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Poly} = _add(p1, -p2)
+-(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:Poly} = _add(-p2, p1)
 
-*{T,M1,W,N,M2<:Poly}(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) = _mul(p1, p2)
-*{T,M1,W,N,M2<:Poly}(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) = _mul(p2, p1)
+*(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Poly} = _mul(p1, p2)
+*(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:Poly} = _mul(p2, p1)
 
 ## Basic operations between polynomial matrices and Numbers
-function _add{T1,M1,W,N,T2<:Number}(p1::PolyMatrix{T1,M1,Val{W},N}, v2::T2)
+function _add(p1::PolyMatrix{T1,M1,Val{W},N}, v2::T2) where {T1,M1,W,N,T2<:Number}
   T     = promote_type(T1, T2)
   c1    = coeffs(p1)
   _,v1  = first(c1)    # for polynomials first(c1) returns index of first element
@@ -279,13 +279,13 @@ function _add{T1,M1,W,N,T2<:Number}(p1::PolyMatrix{T1,M1,Val{W},N}, v2::T2)
   return PolyMatrix(cr, size(p1), Val{W})
 end
 
-+{T,M1,W,N,M2<:Number}(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) = _add(p1, p2)
-+{T,M1,W,N,M2<:Number}(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) = _add(p2, p1)
++(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Number} = _add(p1, p2)
++(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:Number} = _add(p2, p1)
 
--{T,M1,W,N,M2<:Number}(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) = _add(p1, -p2)
--{T,M1,W,N,M2<:Number}(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) = _add(-p2, p1)
+-(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Number} = _add(p1, -p2)
+-(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:Number} = _add(-p2, p1)
 
-function _mul{T1,M1,W,N,T2<:Number}(p1::PolyMatrix{T1,M1,Val{W},N}, v2::T2)
+function _mul(p1::PolyMatrix{T1,M1,Val{W},N}, v2::T2) where {T1,M1,W,N,T2<:Number}
   T     = promote_type(T1, T2)
   c1    = coeffs(p1)
   _,v1  = first(c1) # for polynomials first(c1) returns index of first element
@@ -298,55 +298,55 @@ function _mul{T1,M1,W,N,T2<:Number}(p1::PolyMatrix{T1,M1,Val{W},N}, v2::T2)
   return PolyMatrix(cr, size(p1), Val{W})
 end
 
-*{T,M1,W,N,M2<:Number}(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) = _mul(p1, p2)
-*{T,M1,W,N,M2<:Number}(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) = _mul(p2, p1)
+*(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Number} = _mul(p1, p2)
+*(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:Number} = _mul(p2, p1)
 
-/{T,M1,W,N,M2<:Number}(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) = _mul(p1, 1/p2)
+/(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Number} = _mul(p1, 1/p2)
 
 # multiplication with abstractArray
 # transpose
-Base.LinAlg.At_mul_B{T1,M1,W,N1,T2,N2}(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::AbstractArray{T2,N2}) = transpose(p1)*p2
+Base.LinAlg.At_mul_B(p1::PolyMatrix{T1,M1,Val{W},N1},
+  p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = transpose(p1)*p2
 
-Base.LinAlg.A_mul_Bt{T1,M1,W,N1,T2,N2}(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::AbstractArray{T2,N2}) = p1*transpose(p2)
+Base.LinAlg.A_mul_Bt(p1::PolyMatrix{T1,M1,Val{W},N1},
+  p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = p1*transpose(p2)
 
-Base.LinAlg.At_mul_Bt{T1,M1,W,N1,T2,N2}(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::AbstractArray{T2,N2}) = transpose(p1)*transpose(p2)
+Base.LinAlg.At_mul_Bt(p1::PolyMatrix{T1,M1,Val{W},N1},
+  p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = transpose(p1)*transpose(p2)
 
 # ctranspose
-Base.LinAlg.Ac_mul_B{T1,M1,W,N1,T2,N2}(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::AbstractArray{T2,N2}) = ctranspose(p1)*p2
+Base.LinAlg.Ac_mul_B(p1::PolyMatrix{T1,M1,Val{W},N1},
+  p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = ctranspose(p1)*p2
 
-Base.LinAlg.A_mul_Bc{T1,M1,W,N1,T2,N2}(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::AbstractArray{T2,N2}) = p1*ctranspose(p2)
+Base.LinAlg.A_mul_Bc(p1::PolyMatrix{T1,M1,Val{W},N1},
+  p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = p1*ctranspose(p2)
 
-Base.LinAlg.Ac_mul_Bc{T1,M1,W,N1,T2,N2}(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::AbstractArray{T2,N2}) = ctranspose(p1)*ctranspose(p2)
+Base.LinAlg.Ac_mul_Bc(p1::PolyMatrix{T1,M1,Val{W},N1},
+  p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = ctranspose(p1)*ctranspose(p2)
 
 # multiplication between Polynomialmatrices
 # transpose
-Base.LinAlg.At_mul_B{T1,M1,W,N1,T2,M2,N2}(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::PolyMatrix{T2,M2,Val{W},N2}) = transpose(p1)*p2
+Base.LinAlg.At_mul_B(p1::PolyMatrix{T1,M1,Val{W},N1},
+  p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = transpose(p1)*p2
 
-Base.LinAlg.A_mul_Bt{T1,M1,W,N1,T2,M2,N2}(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::PolyMatrix{T2,M2,Val{W},N2}) = p1*transpose(p2)
+Base.LinAlg.A_mul_Bt(p1::PolyMatrix{T1,M1,Val{W},N1},
+  p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = p1*transpose(p2)
 
-Base.LinAlg.At_mul_Bt{T1,M1,W,N1,T2,M2,N2}(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::PolyMatrix{T2,M2,Val{W},N2}) = transpose(p1)*transpose(p2)
+Base.LinAlg.At_mul_Bt(p1::PolyMatrix{T1,M1,Val{W},N1},
+  p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = transpose(p1)*transpose(p2)
 
 # ctranspose
-Base.LinAlg.Ac_mul_B{T1,M1,W,N1,T2,M2,N2}(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::PolyMatrix{T2,M2,Val{W},N2}) = ctranspose(p1)*p2
+Base.LinAlg.Ac_mul_B(p1::PolyMatrix{T1,M1,Val{W},N1},
+  p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = ctranspose(p1)*p2
 
-Base.LinAlg.A_mul_Bc{T1,M1,W,N1,T2,M2,N2}(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::PolyMatrix{T2,M2,Val{W},N2}) = p1*ctranspose(p2)
+Base.LinAlg.A_mul_Bc(p1::PolyMatrix{T1,M1,Val{W},N1},
+  p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = p1*ctranspose(p2)
 
-Base.LinAlg.Ac_mul_Bc{T1,M1,W,N1,T2,M2,N2}(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::PolyMatrix{T2,M2,Val{W},N2}) = ctranspose(p1)*ctranspose(p2)
+Base.LinAlg.Ac_mul_Bc(p1::PolyMatrix{T1,M1,Val{W},N1},
+  p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = ctranspose(p1)*ctranspose(p2)
 
 # determinant
-function det{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
+function det(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
   size(p,1) == size(p,2) || throw(DimensionMismatch("det: PolyMatrix must be square"))
   n  = size(p,1)
   dn = (degree(p))*n+1
@@ -363,12 +363,12 @@ function det{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
   return Poly(ar, W)
 end
 
-function _truncate{T<:Real,T2}(::Type{T}, a::AbstractArray{T2})
+function _truncate(::Type{T}, a::AbstractArray{T2}) where {T<:Real,T2}
   r = similar(a, T)
   r = real(a)
 end
 
-function _truncate{T<:Integer,T2}(::Type{T}, a::AbstractArray{T2})
+function _truncate(::Type{T}, a::AbstractArray{T2}) where {T<:Integer,T2}
   r = similar(a, T)
   for i in eachindex(a)
     r[i] = convert(T, round(real(a[i])))
@@ -378,7 +378,7 @@ end
 
 # inversion
 # return determinant polynomial and adjugate polynomial matrix
-function inv{T,M,W,N}(p::PolyMatrix{T,M,Val{W},N})
+function inv(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
   size(p,1) == size(p,2) || throw(DimensionMismatch("det: PolyMatrix must be square"))
   n  = size(p,1)
   dn = degree(p)*n+1
