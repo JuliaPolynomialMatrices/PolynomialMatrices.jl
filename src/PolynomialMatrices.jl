@@ -6,6 +6,7 @@ using DataStructures
 using Polynomials
 using Compat
 using LinearAlgebra
+using DSP
 
 # Import functions for overloading
 import Polynomials: coeffs, degree, variable
@@ -20,7 +21,8 @@ import Base: insert!
 import Base: checkbounds
 import Compat.view
 import Base: isapprox, ==, isequal, hash
-import LinearAlgebra: det, norm, vecnorm, rank, filt!, filt
+import LinearAlgebra: det, norm, vecnorm, rank
+import DSP: filt!, filt
 
 # Export
 export PolyMatrix
