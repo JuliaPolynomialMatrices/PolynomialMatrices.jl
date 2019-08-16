@@ -305,45 +305,45 @@ end
 
 # multiplication with abstractArray
 # transpose
-Base.LinAlg.At_mul_B(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = transpose(p1)*p2
-
-Base.LinAlg.A_mul_Bt(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = p1*transpose(p2)
-
-Base.LinAlg.At_mul_Bt(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = transpose(p1)*transpose(p2)
-
-# ctranspose
-Base.LinAlg.Ac_mul_B(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = ctranspose(p1)*p2
-
-Base.LinAlg.A_mul_Bc(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = p1*ctranspose(p2)
-
-Base.LinAlg.Ac_mul_Bc(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = ctranspose(p1)*ctranspose(p2)
-
-# multiplication between Polynomialmatrices
-# transpose
-Base.LinAlg.At_mul_B(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = transpose(p1)*p2
-
-Base.LinAlg.A_mul_Bt(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = p1*transpose(p2)
-
-Base.LinAlg.At_mul_Bt(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = transpose(p1)*transpose(p2)
-
-# ctranspose
-Base.LinAlg.Ac_mul_B(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = ctranspose(p1)*p2
-
-Base.LinAlg.A_mul_Bc(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = p1*ctranspose(p2)
-
-Base.LinAlg.Ac_mul_Bc(p1::PolyMatrix{T1,M1,Val{W},N1},
-  p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = ctranspose(p1)*ctranspose(p2)
+# Base.LinAlg.At_mul_B(p1::PolyMatrix{T1,M1,Val{W},N1},
+#   p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = transpose(p1)*p2
+#
+# Base.LinAlg.A_mul_Bt(p1::PolyMatrix{T1,M1,Val{W},N1},
+#   p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = p1*transpose(p2)
+#
+# Base.LinAlg.At_mul_Bt(p1::PolyMatrix{T1,M1,Val{W},N1},
+#   p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = transpose(p1)*transpose(p2)
+#
+# # ctranspose
+# Base.LinAlg.Ac_mul_B(p1::PolyMatrix{T1,M1,Val{W},N1},
+#   p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = ctranspose(p1)*p2
+#
+# Base.LinAlg.A_mul_Bc(p1::PolyMatrix{T1,M1,Val{W},N1},
+#   p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = p1*ctranspose(p2)
+#
+# Base.LinAlg.Ac_mul_Bc(p1::PolyMatrix{T1,M1,Val{W},N1},
+#   p2::AbstractArray{T2,N2}) where {T1,M1,W,N1,T2,N2} = ctranspose(p1)*ctranspose(p2)
+#
+# # multiplication between Polynomialmatrices
+# # transpose
+# Base.LinAlg.At_mul_B(p1::PolyMatrix{T1,M1,Val{W},N1},
+#   p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = transpose(p1)*p2
+#
+# Base.LinAlg.A_mul_Bt(p1::PolyMatrix{T1,M1,Val{W},N1},
+#   p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = p1*transpose(p2)
+#
+# Base.LinAlg.At_mul_Bt(p1::PolyMatrix{T1,M1,Val{W},N1},
+#   p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = transpose(p1)*transpose(p2)
+#
+# # ctranspose
+# Base.LinAlg.Ac_mul_B(p1::PolyMatrix{T1,M1,Val{W},N1},
+#   p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = ctranspose(p1)*p2
+#
+# Base.LinAlg.A_mul_Bc(p1::PolyMatrix{T1,M1,Val{W},N1},
+#   p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = p1*ctranspose(p2)
+#
+# Base.LinAlg.Ac_mul_Bc(p1::PolyMatrix{T1,M1,Val{W},N1},
+#   p2::PolyMatrix{T2,M2,Val{W},N2}) where {T1,M1,W,N1,T2,M2,N2} = ctranspose(p1)*ctranspose(p2)
 
 # determinant
 function det(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
