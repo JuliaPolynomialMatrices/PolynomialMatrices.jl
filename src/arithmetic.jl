@@ -131,7 +131,7 @@ function _mulconv(p1::PolyMatrix{T1,M1,Val{W},2},
   return PolyMatrix(cr, size(vr), Val{W})
 end
 
-_mulconv{T1,M1,W,N,T2<:Poly}(p1::T2, p2::PolyMatrix{T1,M1,Val{W},N}) = _mulconv(p2,p1)
+_mulconv(p1::T2, p2::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,W,N,T2<:Poly} = _mulconv(p2,p1)
 
 function _mulconv(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:Poly}
   # figure out return type
@@ -162,8 +162,8 @@ function _mulconv(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:P
   return PolyMatrix(cr, size(vr), Val{W})
 end
 
-_keys{T}(c::T) = keys(c)
-_keys{T<:AbstractArray}(c::T) = eachindex(c)-1
+_keys(c::T) where {T} = keys(c)
+_keys(c::T) where {T<:AbstractArray} = eachindex(c)-1
 
 function _mulfft(p1::PolyMatrix{T1,M1,Val{W},2},
   p2::PolyMatrix{T2,M2,Val{W},N}) where {T1,M1,W,T2,M2,N}
@@ -192,7 +192,7 @@ function _mulfft(p1::PolyMatrix{T1,M1,Val{W},2},
   return PolyMatrix(ar, Val{W})
 end
 
-_mulfft{T1,M1,W,N,T2}(p1::Poly{T2}, p2::PolyMatrix{T1,M1,Val{W},N}) = _mulfft(p2,p1)
+_mulfft(p1::Poly{T2}, p2::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,W,N,T2} = _mulfft(p2,p1)
 
 function _mulfft(p1::PolyMatrix{T1,M1,Val{W},N}, p2::Poly{T2}) where {T1,M1,W,N,T2}
   T     = promote_type(T1, T2)
