@@ -11,7 +11,7 @@ using LinearAlgebra
 import Polynomials: coeffs, degree, variable
 import Base: start, next, done
 import Base: promote_rule, convert, size, length
-import Base: +, -, *, /, inv, det
+import Base: +, -, *, /, inv
 import Base: getindex, setindex!, eltype, similar
 import Base: copy
 import Base: transpose, ctranspose
@@ -20,7 +20,8 @@ import Base: insert!
 import Base: checkbounds
 import Base: filt!, filt
 import Compat.view
-import Base: vecnorm, norm, rank, isapprox, ==, isequal, hash
+import Base: isapprox, ==, isequal, hash
+import LinearAlgebra: det, norm, vecnorm, rank
 
 # Export
 export PolyMatrix
