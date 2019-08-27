@@ -1,5 +1,5 @@
 using PolynomialMatrices
-using Base.Test
+using Test
 using Polynomials
 
 include("type.jl")

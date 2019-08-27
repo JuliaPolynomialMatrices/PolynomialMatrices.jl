@@ -1,3 +1,4 @@
+
 # Parameters:
 #   T: type of the polynomials' coefficients
 #   M: type of the matrices of coefficients
@@ -38,7 +39,7 @@ function _truncate!(coeffs::SortedDict{Int,M,ForwardOrdering},
     end
   end
   if length(coeffs) == zero(T)
-    insert!(coeffs, 0, zeros(v1))
+    insert!(coeffs, 0, zero(v1))
   end
   coeffs
 end
@@ -66,14 +67,14 @@ end
 
 function PolyMatrix(d::Dict{Int,M}, var::Type{Val{W}}) where {M<:AbstractArray,W}
   if length(d) ≤ 0
-    warn("PolyMatrix: length(d) == 0")
+    @warn "PolyMatrix: length(d) == 0"
     throw(DomainError())
   end
   c = SortedDict(d)
   n,m = size(first(c)[2])
   for (k,v) in c
     if size(v) != (n,m)
-      warn("PolyMatrix: size of elements not consistent")
+      @warn "PolyMatrix: size of elements not consistent"
       throw(DomainError())
     end
   end
@@ -81,7 +82,7 @@ function PolyMatrix(d::Dict{Int,M}, var::Type{Val{W}}) where {M<:AbstractArray,W
 end
 
 function PolyMatrix(PM::M1) where M1<:AbstractArray
-  var = countnz(PM) > 0 ? PM[findfirst(x -> x != zero(x), PM)].var :
+  var = count(!iszero,PM) > 0 ? PM[findfirst(x -> x != zero(x), PM)].var :
                          Poly(T[]).var       # default to Polys default variable
   PolyMatrix(PM, Val{@compat Symbol(var)})
 end
@@ -130,7 +131,7 @@ function PolyMatrix(A::M, dims::Tuple{Int}, ::Type{Val{W}}) where {M<:AbstractAr
   ny = dims[1]
   dn = div(size(A,1), ny)
   if rem(size(A,1), ny) != 0
-    warn("PolyMatrix: dimensions are not consistent")
+    @warn "PolyMatrix: dimensions are not consistent"
     throw(DomainError())
   end
   p0 = dn > 0 ? p0 = A[1:ny] : zeros(eltype(A), dims)
@@ -151,7 +152,7 @@ function PolyMatrix(A::M, dims::Tuple{Int,Int}, ::Type{Val{W}}; reverse::Bool=fa
   ny = dims[1]
   dn = div(size(A,1), ny)
   if rem(size(A,1), ny) != 0 || size(A,2) != dims[2]
-    warn("PolyMatrix: dimensions are not consistent")
+    @warn "PolyMatrix: dimensions are not consistent"
     throw(DomainError())
   end
   p0 = dn > 0 ? A[1:ny, :] : zeros(eltype(A),dims)
@@ -170,7 +171,7 @@ end
 
 function PolyMatrix(A::M, dims::Tuple{Int,Int,Int}, ::Type{Val{W}}) where {M<:AbstractArray,W}
   if size(A) != dims && dims[3] < 1
-    warn("PolyMatrix: dimensions are not consistent")
+    @warn "PolyMatrix: dimensions are not consistent"
     throw(DomainError())
   end
   dn = dims[3]
@@ -181,5 +182,5 @@ function PolyMatrix(A::M, dims::Tuple{Int,Int,Int}, ::Type{Val{W}}) where {M<:Ab
     p = A[:, :, k+1]
     if (sum(abs2,p) > zero(eltype(A))) insert!(c, k, p) end
   end
-  return PolyMatrix(c, size(A,1,2), Val{W})
+  return PolyMatrix(c, (size(A,1),size(A,2)), Val{W})
 end

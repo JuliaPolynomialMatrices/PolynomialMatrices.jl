@@ -12,21 +12,21 @@ mattype(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}    = M
 
 function similar(p::PolyMatrix{T,M,Val{W},N}, dims::NTuple{N2,Int}) where {T,M,W,N,N2}
   _,v1 = coeffs(p) |> first
-  vr = zeros(similar(v1, T, dims))
+  vr = zero(similar(v1, T, dims))
   r = PolyMatrix(SortedDict(0=>vr), size(vr), Val{W})
 end
 
 function similar(p::PolyMatrix{T,M,Val{W},N}, ::Type{S}=T,
   dims::NTuple{N2,Int}=size(p)) where {T,M,W,N,S,N2}
   _,v1 = coeffs(p) |> first
-  vr = zeros(similar(v1, S, dims))
+  vr = zero(similar(v1, S, dims))
   r = PolyMatrix(SortedDict(0=>vr), size(vr), Val{W})
 end
 
 function similar(p::PolyMatrix{T,M,Val{W},N}, ::Type{Poly{S}},
   dims::NTuple{N2,Int}=size(p)) where {T,M,W,N,S,N2}
   _,v1 = coeffs(p) |> first
-  vr = zeros(similar(v1, S, dims))
+  vr = zero(similar(v1, S, dims))
   r = PolyMatrix(SortedDict(0=>vr), size(vr), Val{W})
 end
 
@@ -242,7 +242,7 @@ end
 # insert!
 function insert!(p::PolyMatrix{T,M,Val{W},N}, k::Int, A) where {T,M,W,N}
   if size(A) != size(p)
-    warn("coefficient matrix to insert does not have the same size as polynomial matrix")
+    @warn "coefficient matrix to insert does not have the same size as polynomial matrix"
     throw(DomainError())
   end
   insert!(coeffs(p), k, convert(M,A))
@@ -280,7 +280,7 @@ end
 # stacks all coefficient matrices and calls built in vecnorm on resulting tall matrix
 function vecnorm(p₁::PolyMatrix{T1,M1,Val{W},N}, p::Real=2) where {T1,M1,W,N}
   c = coeffs(p₁)
-  vecnorm(vcat(values(c)...), p)
+  norm(vcat(values(c)...), p)
 end
 
 ## Comparison
@@ -295,10 +295,10 @@ function ==(p₁::PolyMatrix{T1,M1,Val{W},N}, n::M2) where {T1,M1,W,N,M2<:Abstra
       v == n || return false
       has_zero = true
     else
-      v == zeros(v) || return false
+      v == zero(v) || return false
     end
   end
-  return ifelse(has_zero, true, n == zeros(n))
+  return ifelse(has_zero, true, n == zero(n))
 end
 ==(n::M2, p₁::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,W,N,M2<:AbstractArray} = (p₁ == n)
 
@@ -306,7 +306,7 @@ hash(p::PolyMatrix{T1,M1,Val{W},N}, h::UInt) where {T1,M1,W,N} = hash(W, hash(co
 isequal(p₁::PolyMatrix, p₂::PolyMatrix) = hash(p₁) == hash(p₂)
 
 function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N}, p₂::PolyMatrix{T2,M2,Val{W},N};
-  rtol::Real=length(p₁)*degree(p₁)*degree(p₂)*Base.rtoldefault(T1,T2),
+  rtol::Real=length(p₁)*degree(p₁)*degree(p₂)*Base.rtoldefault(T1,T2,0),
   atol::Real=0, norm::Function=vecnorm) where {T1,M1,W,N,T2,M2}
   d = norm(p₁ - p₂)
   if isfinite(d)
@@ -318,10 +318,10 @@ function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N}, p₂::PolyMatrix{T2,M2,Val{W
     s₁ = setdiff(keys(c₁),sᵢ)
     s₂ = setdiff(keys(c₂),sᵢ)
     for k in s₁
-      isapprox(c₁[k], zeros(c₁[k]); rtol=rtol, atol=atol) || return false
+      isapprox(c₁[k], zero(c₁[k]); rtol=rtol, atol=atol) || return false
     end
     for k in s₂
-      isapprox(c₂[k], zeros(c₂[k]); rtol=rtol, atol=atol) || return false
+      isapprox(c₂[k], zero(c₂[k]); rtol=rtol, atol=atol) || return false
     end
     for k in sᵢ
       isapprox(c₁[k], c₂[k]; rtol=rtol, atol=atol)        || return false
@@ -330,13 +330,13 @@ function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N}, p₂::PolyMatrix{T2,M2,Val{W
   end
 end
 function isapprox(p₁::PolyMatrix{T1,M1,Val{W1},N}, p₂::PolyMatrix{T2,M2,Val{W2},N};
-  rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0, norm::Function=vecnorm) where {T1,M1,W1,W2,N,T2,M2}
-  warn("p₁≈p₂: `p₁` ($T1,$W1) and `p₂` ($T2,$W2) have different variables")
+  rtol::Real=Base.rtoldefault(T1,T2,0), atol::Real=0, norm::Function=vecnorm) where {T1,M1,W1,W2,N,T2,M2}
+  @warn "p₁≈p₂: `p₁` ($T1,$W1) and `p₂` ($T2,$W2) have different variables"
   throw(DomainError())
 end
 
 function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N},
-  n::AbstractArray{T2,N}; rtol::Real=Base.rtoldefault(T1,T2), atol::Real=0,
+  n::AbstractArray{T2,N}; rtol::Real=Base.rtoldefault(T1,T2,0), atol::Real=0,
   norm::Function=vecnorm) where {T1,M1,W,N,T2}
   d = norm(p₁ - n)
   if isfinite(d)
@@ -349,7 +349,7 @@ function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N},
         isapprox(v, n; rtol=rtol, atol=atol) || return false
         has_zero = true
       else
-        isapprox(v, zeros(v); rtol=rtol, atol=atol, norm=norm) || return false
+        isapprox(v, zero(v); rtol=rtol, atol=atol, norm=norm) || return false
       end
     end
     return ifelse(has_zero, true, isapprox(n,zeros(n); rtol=rtol, atol=atol, norm=norm))
@@ -358,13 +358,13 @@ end
 isapprox(n::AbstractArray{T2,N}, p₁::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,W,N,T2} = (p₁ ≈ n)
 
 function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N},
-  n::AbstractArray{Poly{T2},N}; rtol::Real=Base.rtoldefault(T1,T2),
+  n::AbstractArray{Poly{T2},N}; rtol::Real=Base.rtoldefault(T1,T2,0),
   atol::Real=0, norm::Function=vecnorm) where {T1,M1,W,N,T2}
   return isapprox(p₁, PolyMatrix(n); rtol=rtol, atol=atol, norm=norm)
 end
 
 function isapprox(n::AbstractArray{Poly{T2},N},
-  p₁::PolyMatrix{T1,M1,Val{W},N}; rtol::Real=Base.rtoldefault(T1,T2),
+  p₁::PolyMatrix{T1,M1,Val{W},N}; rtol::Real=Base.rtoldefault(T1,T2,0),
   atol::Real=0, norm::Function=vecnorm) where {T1,M1,W,N,T2}
   return isapprox(PolyMatrix(n), p₁; rtol=rtol, atol=atol, norm=norm)
 end

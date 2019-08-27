@@ -32,7 +32,7 @@ function gcrd(p₁::PolyMatrix{T1,M1,Val{W},N},
   p₂::PolyMatrix{T2,M2,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1) where {T1,M1,W,N,T2,M2}
   n₁,m₁ = size(p₁)
   n₂,m₂ = size(p₂)
-  m₁ == m₂ || (warn("gcrd: p₁ and p₂ does note have the same number of columns"); throw(DomainError()))
+  m₁ == m₂ || (@warn "gcrd: p₁ and p₂ does note have the same number of columns"; throw(DomainError()))
   R,U   = rtriang([p₁; p₂], iterative, dᵤ)
   detU, adjU = inv(U)
   V     = adjU/detU(0)
@@ -75,7 +75,7 @@ function gcld(p₁::PolyMatrix{T1,M1,Val{W},N},
   p₂::PolyMatrix{T2,M2,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1) where {T1,M1,W,N,T2,M2}
   n₁,m₁ = size(p₁)
   n₂,m₂ = size(p₂)
-  n₁ == n₂ || (warn("gcrd: p₁ and p₂ does note have the same number of columns"); throw(DomainError()))
+  n₁ == n₂ || (@warn"gcrd: p₁ and p₂ does note have the same number of columns"; throw(DomainError()))
   L,U   = ltriang([p₁ p₂], iterative, dᵤ)
   detU, adjU = inv(U)
   V     = adjU/detU(0)
@@ -123,7 +123,7 @@ function hermite(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=-
   L = L*U1
 
   # reduce order
-  U2 = eye(m)
+  U2 = Matrix{Float64}(I,m,m)
   for i in 2:m
     for j in 1:i-1
       σ = Σ[i]
@@ -171,7 +171,7 @@ julia> L
 function ltriang(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1) where {T1,M,W,N}
   n,m = size(p)
   if n < m || rank(p) < m
-    pₑ = vcat(p, PolyMatrix(eye(T1,m), size(eye(m)), Val{W}))
+    pₑ = vcat(p, PolyMatrix(Matrix{Float64}(m,m), (m,m), Val{W}))
   else
     pₑ = p
   end
@@ -453,7 +453,7 @@ function colred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
   p_temp = copy(p)
   c       = coeffs(p_temp)         # Dictionary of coefficient matrices of p
   num_col = N < 2 ? 1 : size(p,2)  # Number of columns of p
-  U       = PolyMatrix(eye(T,num_col), Val{W})
+  U       = PolyMatrix(Matrix{Float64}(num_col,num_col), Val{W})
 
   indN    = zeros(Int,num_col)  # Collection of non-zero entries of n
   while true
@@ -487,7 +487,7 @@ function colred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
     end
 
     # Unimodular matrix Utemp
-    Utemp = SortedDict(0 => eye(T,num_col))
+    Utemp = SortedDict(0 => Matrix{Float64}(num_col,num_col))
     for i = 1:max_temp-minimum(k[indN[1:num_nz]])
       insert!(Utemp, i, zeros(T,num_col,num_col))
     end
@@ -605,7 +605,7 @@ function rowred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
   p_temp  = copy(p)
   c       = coeffs(p_temp)  # Dictionary of coefficient matrices of p
   num_row = size(p,1)      # Number of rows of p
-  U       = PolyMatrix(eye(T,num_row), Val{W})
+  U       = PolyMatrix(Matrix{Float64}(num_row,num_row), Val{W})
 
   indN    = zeros(Int,num_row)  # Collection of non-zero entries of n
   while true
@@ -640,7 +640,7 @@ function rowred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
     end
 
     # Unimodular matrix Utemp
-    Utemp = SortedDict(0 => eye(T,num_row))
+    Utemp = SortedDict(0 => Matrix{Float64}(num_row,num_row))
     #insert!(Utemp, 0, )
     for i = 1:max_temp-minimum(k[indN[1:num_nz]])
       insert!(Utemp, i, zeros(T,num_row,num_row))

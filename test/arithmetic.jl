@@ -4,19 +4,19 @@ p2  = Poly([2,1,3,4],:s)
 p3  = Poly([2,3,4,5,7],:s)
 m   = [p1 p2; p3 p1]
 pm1 = PolyMatrix(m)
-pm2 = PolyMatrix(m+1.0)
+pm2 = PolyMatrix(m .+ 1.0)
 pm3 = PolyMatrix(hcat(m,m))
-pm4 = PolyMatrix(eye(2),:x)
+pm4 = PolyMatrix(Matrix{Float64}(I,2,2),:x)
 n1  = 1
 n2  = 0.0
-a1  = eye(2,2)
-a2  = eye(2,4)
+a1  = Matrix{Float64}(I,2,2)
+a2  = Matrix{Float64}(I,2,4)
 v1  = ones(2)
 v2  = ones(4)
 
 # addition
 @test pm1+pm1 == PolyMatrix(2*m)
-@test pm1+pm2 == PolyMatrix(2*m+1)
+@test pm1+pm2 == PolyMatrix(2*m .+ 1)
 @test_throws DomainError pm1+pm3
 @test_throws DomainError pm1+pm4
 #@inferred pm1+pm1

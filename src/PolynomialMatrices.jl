@@ -7,6 +7,7 @@ using Polynomials
 using Compat
 using LinearAlgebra
 using DSP
+using SparseArrays
 
 # Import functions for overloading
 import Polynomials: coeffs, degree, variable

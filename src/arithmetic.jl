@@ -1,7 +1,7 @@
-## Basic operations between polynomial matrices
+zero## Basic operations between polynomial matrices
 function +(p1::PolyMatrix{T1,M1,Val{W},N}, p2::PolyMatrix{T2,M2,Val{W},N}) where {T1,M1,W,N,T2,M2}
   if size(p1) ≠ size(p2)
-    warn("+(p1,p2): size(p1) ≠ size(p2)")
+    @warn "+(p1,p2): size(p1) ≠ size(p2)"
     throw(DomainError())
   end
   _add(p1,p2)
@@ -16,7 +16,7 @@ function _add(p1::PolyMatrix{T1,M1,Val{W},N},
   vr    = v1+v2
   M     = typeof(vr)
 
-  cr  = SortedDict(0=>zeros(vr))
+  cr  = SortedDict(0=>zero(vr))
   sᵢ  = intersect(keys(c1), keys(c2))
   s₁  = setdiff(keys(c1), sᵢ)
   s₂  = setdiff(keys(c2), sᵢ)
@@ -37,7 +37,7 @@ function _add(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:Poly}
   c2    = coeffs(p2)
   _,v1  = first(c1) # for polynomials first(c1) returns index of first element
   v2    = first(c2)   # for polynomialmatrices it returns key value pair
-  vr    = v1+v2
+  vr    = v1 .+ v2
   M     = typeof(vr)
 
   cr  = SortedDict(Dict{Int,M}())
@@ -51,13 +51,13 @@ function _add(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:Poly}
     insert!(cr, k, p2[k])
   end
   for k in sᵢ
-    insert!(cr, k, c1[k]+p2[k])
+    insert!(cr, k, c1[k] .+ p2[k])
   end
   return PolyMatrix(cr, size(vr), Val{W})
 end
 
 function +(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N}) where {T1,M1,W1,W2,N,T2,M2}
-  warn("p1+p2: `p1` ($T1,$W1) and `p2` ($T2,$W2) have different variables")
+  @warn "p1+p2: `p1` ($T1,$W1) and `p2` ($T2,$W2) have different variables"
   throw(DomainError())
 end
 
@@ -73,14 +73,14 @@ end
 -(p1::PolyMatrix{T1,M1,Val{W},N}, p2::PolyMatrix{T2,M2,Val{W},N}) where {T1,M1,W,N,T2,M2} = +(p1,-p2)
 
 function -(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N}) where {T1,M1,W1,W2,N,T2,M2}
-  warn("p1-p2: `p1` ($T1,$W1) and `p2` ($T2,$W2) have different variables")
+  @warn "p1-p2: `p1` ($T1,$W1) and `p2` ($T2,$W2) have different variables"
   throw(DomainError())
 end
 
 # heuristic used below was found by benchmarking
 function *(p1::PolyMatrix{T1,M1,Val{W},2}, p2::PolyMatrix{T2,M2,Val{W},2}) where {T1,M1,W,T2,M2}
   if size(p1,2) ≠ size(p2,1)
-    warn("*(p1,p2): size(p1,2) ≠ size(p2,1)")
+    @warn "*(p1,p2): size(p1,2) ≠ size(p2,1)"
     throw(DomainError())
   end
   _mul(p1,p2)
@@ -88,7 +88,7 @@ end
 
 function *(p1::PolyMatrix{T1,M1,Val{W},2}, p2::PolyMatrix{T2,M2,Val{W},1}) where {T1,M1,W,T2,M2}
   if size(p1,2) ≠ size(p2,1)
-    warn("*(p1,p2): size(p1,2) ≠ size(p2,1)")
+    @warn "*(p1,p2): size(p1,2) ≠ size(p2,1)"
     throw(DomainError())
   end
   _mul(p1,p2)
@@ -122,7 +122,7 @@ function _mulconv(p1::PolyMatrix{T1,M1,Val{W},2},
 
   # do the calculations
   for k in keys(klist)
-    vk = zeros(vr)
+    vk = zero(vr)
     for v in klist[k]
       vk += c1[v[1]]*c2[v[2]]
     end
@@ -163,7 +163,7 @@ function _mulconv(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:P
 end
 
 _keys(c::T) where {T} = keys(c)
-_keys(c::T) where {T<:AbstractArray} = eachindex(c)-1
+_keys(c::T) where {T<:AbstractArray} = eachindex(c) .- 1
 
 function _mulfft(p1::PolyMatrix{T1,M1,Val{W},2},
   p2::PolyMatrix{T2,M2,Val{W},N}) where {T1,M1,W,T2,M2,N}
@@ -238,7 +238,7 @@ function _fftmatrix(p::Poly{T1}, ::Type{T}, dn::Integer) where {T1,T}
 end
 
 function *(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N}) where {T1,M1,W1,W2,N,T2,M2}
-  warn("p1*p2: `p1` ($T1,$W1) and `p2` ($T2,$W2) have different variables")
+  @warn "p1*p2: `p1` ($T1,$W1) and `p2` ($T2,$W2) have different variables"
   throw(DomainError())
 end
 

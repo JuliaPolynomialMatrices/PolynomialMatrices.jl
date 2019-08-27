@@ -18,7 +18,7 @@ degreepm2 = 8
 ny  = 2
 nu  = 2
 A   = randn(ny*(degreepm2+1),nu)
-B   = eye(Float64,2)
+B   = Matrix{Float64}(I,2,2)
 
 @test_throws DomainError PolyMatrix(A, (5,nu))
 @test_throws DomainError PolyMatrix(A, (ny,3))

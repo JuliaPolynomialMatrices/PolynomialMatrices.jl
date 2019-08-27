@@ -26,7 +26,7 @@ function filt!(out::AbstractArray{H}, b::PolyMatrix{T,M1,W,N},
     throw(ArgumentError("First coefficient matrix must be nonzero of a"))
   end
   a0 = ac[0]
-  if a0 != eye(a0)
+  if a0 != Matrix{Float64}(I,size(a0))
     a = inv(a0)*a
     b = inv(a0)*b
   end
