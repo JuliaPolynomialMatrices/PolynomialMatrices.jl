@@ -75,7 +75,7 @@ function gcld(p₁::PolyMatrix{T1,M1,Val{W},N},
   p₂::PolyMatrix{T2,M2,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1) where {T1,M1,W,N,T2,M2}
   n₁,m₁ = size(p₁)
   n₂,m₂ = size(p₂)
-  n₁ == n₂ || (@warn"gcrd: p₁ and p₂ does note have the same number of columns"; throw(DomainError()))
+  n₁ == n₂ || (@warn "gcrd: p₁ and p₂ does note have the same number of columns"; throw(DomainError()))
   L,U   = ltriang([p₁ p₂], iterative, dᵤ)
   detU, adjU = inv(U)
   V     = adjU/detU(0)
