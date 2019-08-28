@@ -7,18 +7,18 @@ L₀ = PolyMatrix([-1.225s+1.225 zero(s); -2.450*one(s) zero(s); -1.225*one(s) 1
 @test isapprox(L, L₀; rtol=1e-3)
 @test isapprox(p*U, L)
 
-R,U = rtriang(p.', false, 1)
-@test isapprox(R.', L₀; rtol=1e-3)
-@test isapprox(U*p.', R)
+R,U = rtriang(copy(transpose(p)), false, 1)
+@test isapprox(copy(transpose(R)), L₀; rtol=1e-3)
+@test isapprox(U*transpose(p), R)
 
 L,U = ltriang(p)
 @test isapprox(p*U, L₀; rtol=1e-3)
 @test isapprox(L, L₀; rtol=1e-3)
 @test isapprox(p*U, L)
 
-R,U = rtriang(p.')
-@test isapprox(R.', L₀; rtol=1e-3)
-@test isapprox(U*p.', R)
+R,U = rtriang(copy(transpose(p)))
+@test isapprox(copy(transpose(R)), L₀; rtol=1e-3)
+@test isapprox(U*transpose(p), R)
 
 # hermite
 s = variable("s")
@@ -44,10 +44,10 @@ R, V₁, V₂ = gcrd(p₁, p₂)
 @test V₁*R ≈ p₁
 @test V₂*R ≈ p₂
 
-L, V₁, V₂ = gcld(p₁.', p₂.')
-@test hermite(L)[1] ≈ hermite(R₀.')[1]
-@test L*V₁ ≈ p₁.'
-@test L*V₂ ≈ p₂.'
+L, V₁, V₂ = gcld(copy(transpose(p₁)),copy(transpose(p₂)))
+@test hermite(L)[1] ≈ hermite(copy(transpose(R₀)))[1]
+@test L*V₁ ≈ copy(transpose(p₁))
+@test L*V₂ ≈ copy(transpose(p₂))
 
 # colred
 s = variable("s")
@@ -65,12 +65,12 @@ R,U = colred(p)
 R1,R2 = colred(p, p2)
 @test isapprox(R, R1)
 
-R,U = rowred(p.')
-@test isapprox(R, R₀.')
-@test isapprox(U, U₀.')
-@test isapprox(U*p.', R)
+R,U = rowred(copy(transpose(p)))
+@test isapprox(R, copy(transpose(R₀)))
+@test isapprox(U, copy(transpose(U₀)))
+@test isapprox(U*transpose(p), R)
 
-R1,R2 = rowred(p.', p2.')
+R1,R2 = rowred(copy(transpose(p)), copy(transpose(p2)))
 @test isapprox(R, R1)
 
 # example 2 from "A Fortran 77 package for column reduction of polynomial matrices" Geurts, A.J. Praagman, C., 1998
@@ -90,8 +90,8 @@ p = PolyMatrix([s^3+s^2 ϵ*s+1 one(s); 2s^2 -one(s) -one(s); 3s^2 one(s) one(s)]
 R,U = colred(p)
 @test isapprox(p*U, R)
 
-R,U = rowred(p.')
-@test isapprox(U*p.', R)
+R,U = rowred(copy(transpose(p)))
+@test isapprox(U*transpose(p)), R)
 
 # example 4 from "A Fortran 77 package for column reduction of polynomial matrices" Geurts, A.J. Praagman, C., 1998
 ϵ = e-8
@@ -116,7 +116,7 @@ rmfd = vcat(Dᵣ,Nᵣ)
 lmfd = hcat(-Nₗ, Dₗ)
 
 # verify that example is correct.
-@test vecnorm(lmfd*rmfd) ≈ 0
+@test norm(lmfd*rmfd) ≈ 0
 
 L,U = ltriang(lmfd)
 
@@ -133,7 +133,7 @@ N₀ = Nᵣ*U
 @test isapprox(Dₕ,D₀)
 @test isapprox(Nₕ,N₀)
 
-@test vecnorm(lmfd*vcat(Dₕ,Nₕ)) < 1e-12
+@test norm(lmfd*vcat(Dₕ,Nₕ)) < 1e-12
 
 rmfd2 = vcat(-Dᵣ,Nᵣ)
 R,U = rtriang(rmfd2,false)
@@ -145,7 +145,7 @@ D = U[3:4,3:4]
 # try to get back rfd from obtained lfd
 lmfd2 = hcat(-N,D)
 
-@test vecnorm(lmfd2*rmfd) < 1e-14
+@test norm(lmfd2*rmfd) < 1e-14
 L,U = ltriang(lmfd2)
 
 N = U[3:4,3:4]
