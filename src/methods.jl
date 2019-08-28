@@ -242,8 +242,7 @@ end
 # insert!
 function insert!(p::PolyMatrix{T,M,Val{W},N}, k::Int, A) where {T,M,W,N}
   if size(A) != size(p)
-    @warn "coefficient matrix to insert does not have the same size as polynomial matrix"
-    throw(DomainError())
+    throw(DomainError((p,k,A),"coefficient matrix to insert does not have the same size as polynomial matrix"))
   end
   insert!(coeffs(p), k, convert(M,A))
 end

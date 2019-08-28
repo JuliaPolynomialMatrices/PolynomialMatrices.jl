@@ -300,7 +300,7 @@ function _ltriang(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=
   # The following line is suggested by testing and not by the paper ?!
   # It handles cases where the first rows in the
   # triangular form are zero
-  Σb = Σb - Σb[1]+1
+  Σb = Σb .- Σb[1] .+ 1
 
   Σ = zeros(Int,0)
   for i in 1:m*(dᵤ+1)
