@@ -150,8 +150,7 @@ function PolyMatrix(A::M, dims::Tuple{Int,Int}, ::Type{Val{W}}; reverse::Bool=fa
   ny = dims[1]
   dn = div(size(A,1), ny)
   if rem(size(A,1), ny) != 0 || size(A,2) != dims[2]
-    @warn "PolyMatrix: dimensions are not consistent"
-    throw(DomainError())
+    throw(DomainError((A,dims),"PolyMatrix: dimensions are not consistent"))
   end
   p0 = dn > 0 ? A[1:ny, :] : zeros(eltype(A),dims)
   c  = SortedDict(Dict{Int,typeof(p0)}())
