@@ -198,7 +198,7 @@ end
 @test coeffs(pm3[end]) ≈ coeffs(one(Poly{Float64}))
 #@inferred coeffs(pm3[end])
 
-# test transpose and ctranspose
+# test transpose and adjoint
 pm4[2] = p3
 pm5 = transpose(pm4)
 @test coeffs(pm4[2]) ≈ coeffs(pm5[3])
@@ -206,8 +206,8 @@ pm5 = transpose(pm4)
 
 C   = randn(2,2) + randn(2,2)im
 pm6 = PolyMatrix(C)
-@test coeffs(ctranspose(pm6))[0] ≈ ctranspose(C)
-#@inferred ctranspose(pm4)
+@test coeffs(adjoint(pm6))[0] ≈ adjoint(C)
+#@inferred adjoint(pm4)
 
 # test rank
 p1  = Poly([1],:s)
