@@ -331,8 +331,8 @@ function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N}, p₂::PolyMatrix{T2,M2,Val{W
 end
 function isapprox(p₁::PolyMatrix{T1,M1,Val{W1},N}, p₂::PolyMatrix{T2,M2,Val{W2},N};
   rtol::Real=Base.rtoldefault(T1,T2,0), atol::Real=0, norm::Function=norm) where {T1,M1,W1,W2,N,T2,M2}
-  @warn "p₁≈p₂: `p₁` ($T1,$W1) and `p₂` ($T2,$W2) have different variables"
-  throw(DomainError((p₁,p₂),"The two polynomial matrices have different variables."))
+  #@warn "p₁≈p₂: `p₁` ($T1,$W1) and `p₂` ($T2,$W2) have different variables"
+  throw(DomainError((p₁,p₂),"the two polynomial matrices have different variables."))
 end
 
 function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N},
