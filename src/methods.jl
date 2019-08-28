@@ -49,7 +49,7 @@ end
 # works but is not properly since @inferred do not give correct type
 function Base.cat(catdims, A::PolyMatrix{T,M,Val{W},N}...) where {T,M,W,N}
   mvec  = map(_matrixofpoly, A)
-  mpoly = cat(catdims, mvec...)
+  mpoly = cat(mvec...,dims=catdims)
   return PolyMatrix(mpoly, Val{W})
 end
 
@@ -262,23 +262,23 @@ function transpose(p::PolyMatrix{T,M,Val{W},N}) where {T,M<:AbstractMatrix,W,N}
   PolyMatrix(cr, reverse(p.dims), Val{W})
 end
 
-function ctranspose(p::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,W,N}
+function adjoint(p::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,W,N}
   c     = coeffs(p)
   k1,v1 = first(c)
-  vr    = ctranspose(v1)
+  vr    = adjoint(v1)
   M     = typeof(vr)
   cr    = SortedDict(Dict{Int,M}())
   for (k,v) in c
-    insert!(cr, k, ctranspose(v))
+    insert!(cr, k, adjoint(v))
   end
   PolyMatrix(cr, size(p), Val{W})
 end
 
 # TODO is there a definition for matrix norms for polynomial matrices?
 # TODO Lₚ norms
-# vecnorm
-# stacks all coefficient matrices and calls built in vecnorm on resulting tall matrix
-function vecnorm(p₁::PolyMatrix{T1,M1,Val{W},N}, p::Real=2) where {T1,M1,W,N}
+# norm
+# stacks all coefficient matrices and calls built in norm on resulting tall matrix
+function norm(p₁::PolyMatrix{T1,M1,Val{W},N}, p::Real=2) where {T1,M1,W,N}
   c = coeffs(p₁)
   norm(vcat(values(c)...), p)
 end
@@ -307,7 +307,7 @@ isequal(p₁::PolyMatrix, p₂::PolyMatrix) = hash(p₁) == hash(p₂)
 
 function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N}, p₂::PolyMatrix{T2,M2,Val{W},N};
   rtol::Real=length(p₁)*degree(p₁)*degree(p₂)*Base.rtoldefault(T1,T2,0),
-  atol::Real=0, norm::Function=vecnorm) where {T1,M1,W,N,T2,M2}
+  atol::Real=0, norm::Function=norm) where {T1,M1,W,N,T2,M2}
   d = norm(p₁ - p₂)
   if isfinite(d)
     return d <= atol + rtol*max(norm(p₁), norm(p₂))
@@ -330,9 +330,9 @@ function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N}, p₂::PolyMatrix{T2,M2,Val{W
   end
 end
 function isapprox(p₁::PolyMatrix{T1,M1,Val{W1},N}, p₂::PolyMatrix{T2,M2,Val{W2},N};
-  rtol::Real=Base.rtoldefault(T1,T2,0), atol::Real=0, norm::Function=vecnorm) where {T1,M1,W1,W2,N,T2,M2}
+  rtol::Real=Base.rtoldefault(T1,T2,0), atol::Real=0, norm::Function=norm) where {T1,M1,W1,W2,N,T2,M2}
   @warn "p₁≈p₂: `p₁` ($T1,$W1) and `p₂` ($T2,$W2) have different variables"
-  throw(DomainError())
+  throw(DomainError((p₁,p₂),"The two polynomial matrices have different variables."))
 end
 
 function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N},
@@ -359,13 +359,13 @@ isapprox(n::AbstractArray{T2,N}, p₁::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,
 
 function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N},
   n::AbstractArray{Poly{T2},N}; rtol::Real=Base.rtoldefault(T1,T2,0),
-  atol::Real=0, norm::Function=vecnorm) where {T1,M1,W,N,T2}
+  atol::Real=0, norm::Function=norm) where {T1,M1,W,N,T2}
   return isapprox(p₁, PolyMatrix(n); rtol=rtol, atol=atol, norm=norm)
 end
 
 function isapprox(n::AbstractArray{Poly{T2},N},
   p₁::PolyMatrix{T1,M1,Val{W},N}; rtol::Real=Base.rtoldefault(T1,T2,0),
-  atol::Real=0, norm::Function=vecnorm) where {T1,M1,W,N,T2}
+  atol::Real=0, norm::Function=norm) where {T1,M1,W,N,T2}
   return isapprox(PolyMatrix(n), p₁; rtol=rtol, atol=atol, norm=norm)
 end
 
