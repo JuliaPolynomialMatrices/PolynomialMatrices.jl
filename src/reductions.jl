@@ -266,8 +266,8 @@ function _ltriang(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=
     # sort in decreasing order
     v = sortperm(Σb)
     U2 = zeros(T, mₛ, mₛ)
-    for j in 1:mₛ
-      U2[j,v[j]] = one(T)
+    for k in 1:mₛ
+      U2[k,v[k]] = one(T)
     end
     L = L*transpose(U2)
     U = U2*U
