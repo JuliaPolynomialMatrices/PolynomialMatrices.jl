@@ -171,7 +171,7 @@ julia> L
 function ltriang(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1) where {T1,M,W,N}
   n,m = size(p)
   if n < m || rank(p) < m
-    pₑ = vcat(p, PolyMatrix(Matrix{Float64}(m,m), (m,m), Val{W}))
+    pₑ = vcat(p, PolyMatrix(Matrix{Float64}(undef,m,m), (m,m), Val{W}))
   else
     pₑ = p
   end
@@ -217,7 +217,7 @@ end
 function _unshift(L::AbstractMatrix,d::Int)
   n,r = divrem(size(L,1), d+1)
   r == 0 || throw(DimensionMismatch())
-  SL = zeros(L)
+  SL = zero(L)
   for i in 0:d
     for j in 0:n-1
       SL[(d-i)*n+j+1,:] = L[(j)*(d+1)+d-i+1,:]

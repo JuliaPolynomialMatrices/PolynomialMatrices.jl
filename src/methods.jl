@@ -337,7 +337,7 @@ end
 
 function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N},
   n::AbstractArray{T2,N}; rtol::Real=Base.rtoldefault(T1,T2,0), atol::Real=0,
-  norm::Function=vecnorm) where {T1,M1,W,N,T2}
+  norm::Function=norm) where {T1,M1,W,N,T2}
   d = norm(p₁ - n)
   if isfinite(d)
     return d <= atol + rtol*max(norm(p₁), norm(n))

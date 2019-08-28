@@ -17,13 +17,13 @@ import Base: promote_rule, convert, size, length
 import Base: +, -, *, /, inv
 import Base: getindex, setindex!, eltype, similar
 import Base: copy
-import Base: transpose, ctranspose
+import Base: transpose, adjoint
 import Base: summary
 import Base: insert!
 import Base: checkbounds
 import Compat.view
 import Base: isapprox, ==, isequal, hash
-import LinearAlgebra: det, norm, vecnorm, rank
+import LinearAlgebra: det, norm, rank
 import DSP: filt!, filt
 
 # Export
