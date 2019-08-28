@@ -67,15 +67,13 @@ end
 
 function PolyMatrix(d::Dict{Int,M}, var::Type{Val{W}}) where {M<:AbstractArray,W}
   if length(d) ≤ 0
-    @warn "PolyMatrix: length(d) == 0"
-    throw(DomainError())
+    throw(DomainError(d,"PolyMatrix: length(d) == 0"))
   end
   c = SortedDict(d)
   n,m = size(first(c)[2])
   for (k,v) in c
     if size(v) != (n,m)
-      @warn "PolyMatrix: size of elements not consistent"
-      throw(DomainError())
+      throw(DomainError(d,"PolyMatrix: size of elements not consistent"))
     end
   end
   PolyMatrix(c, (n,m), Val{W})
