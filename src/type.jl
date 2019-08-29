@@ -155,7 +155,7 @@ function PolyMatrix(A::M, dims::Tuple{Int,Int}, ::Type{Val{W}}; reverse::Bool=fa
   p0 = dn > 0 ? A[1:ny, :] : zeros(eltype(A),dims)
   c  = SortedDict(Dict{Int,typeof(p0)}())
   for k = 0:dn-1
-    idx = reverse ? (dn-k-1)*ny+(1:ny) : k*ny+(1:ny)
+    idx = reverse ? (dn-k-1)*ny .+ (1:ny) : k*ny .+ (1:ny)
     v = A[idx, :]
     insert!(c, k, v)
   end
