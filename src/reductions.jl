@@ -117,7 +117,7 @@ function hermite(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=-
   n,m   = size(p)
 
   # scale diagonal elements first
-  Σ = [findfirst(L[:,k]) for k in 1:m]
+  Σ = [findfirst(x -> x!=0, L[:,k]) for k in 1:m]
   U1 = Diagonal([1 ./ L[Σ[k],k] for k in 1:m])
   U = U*U1
   L = L*U1
