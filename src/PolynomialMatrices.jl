@@ -12,7 +12,6 @@ using FFTW
 
 # Import functions for overloading
 import Polynomials: coeffs, degree, variable
-import Base: start, next, done
 import Base: promote_rule, convert, size, length
 import Base: +, -, *, /, inv
 import Base: getindex, setindex!, eltype, similar

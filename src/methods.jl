@@ -2,9 +2,9 @@ size(p::PolyMatrix) = p.dims
 size(p::PolyMatrix, i::Integer) = i ≤ length(p.dims) ? p.dims[i] : 1
 
 length(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}     = prod(size(p))
-start(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}      = 1
-next(p::PolyMatrix{T,M,Val{W},N}, state) where {T,M,W,N}= p[state], state+1
-done(p::PolyMatrix{T,M,Val{W},N}, state) where {T,M,W,N}= state > length(p)
+# start(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}      = 1 # no longer needed in Julia 1.x but temporarily left here for possible consulting if things brake. The same below.
+# next(p::PolyMatrix{T,M,Val{W},N}, state) where {T,M,W,N}= p[state], state+1
+# done(p::PolyMatrix{T,M,Val{W},N}, state) where {T,M,W,N}= state > length(p)
 eltype(::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}      = Poly{T}
 vartype(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}    = W
 mattype(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}    = M
