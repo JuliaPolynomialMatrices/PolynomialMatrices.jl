@@ -1,6 +1,7 @@
 using PolynomialMatrices
-using Base.Test
+using Test
 using Polynomials
+using LinearAlgebra
 
 include("type.jl")
 include("methods.jl")

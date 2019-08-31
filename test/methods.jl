@@ -14,8 +14,8 @@ pm2 = PolyMatrix(m2)
 pm3 = PolyMatrix(m3)
 pm4 = PolyMatrix(m4)
 pm5 = PolyMatrix(m5)
-pm6 = PolyMatrix(eye(2), :s)
-pm7 = PolyMatrix(eye(2), :z)
+pm6 = PolyMatrix(Matrix{Float64}(I,2,2), :s)
+pm7 = PolyMatrix(Matrix{Float64}(I,2,2), :z)
 
 @test pm1 != pm2 != pm3 != pm4 != pm5
 @test pm6 != pm7
@@ -24,7 +24,7 @@ pm7 = PolyMatrix(eye(2), :z)
 @test !isapprox(pm3,pm4; rtol=0.01)
 @test isapprox(pm3,pm4; rtol=0.1)
 @test !isapprox(pm3,pm4; rtol=0.001)
-@test isapprox(eye(2),pm6)
+@test isapprox(Matrix{Float64}(I,2,2),pm6)
 @test !isapprox(pm1,pm3)
 
 @test !isapprox(pm3,m4; rtol=0.01)
@@ -107,11 +107,11 @@ hvcat(1, pm1, pm1)
 @test [pm1 pm2; pm2 pm1] == PolyMatrix([m1 m2; m2 m1])
 #@inferred hvcat((2,2), pm1,pm2,pm2,pm1)
 
-#@test vcat(pm1, eye(Int, 2)) == PolyMatrix(vcat(m1, eye(Int, 2)))
-#@inferred vcat(pm1, eye(Int, 2))
+#@test vcat(pm1, Matrix{Int}(I,2,2)) == PolyMatrix(vcat(m1, Matrix{Int}(I,2,2)))
+#@inferred vcat(pm1, Matrix{Int}(I,2,2))
 
-#@test hcat(pm1, eye(2)) == PolyMatrix(hcat(m1, eye(2)))
-#@inferred vcat(pm1, eye(2))
+#@test hcat(pm1, Matrix{Float64}(I,2,2)) == PolyMatrix(hcat(m1, Matrix{Float64}(I,2,2)))
+#@inferred vcat(pm1, Matrix{Float64}(I,2,2))
 
 # test getindex
 p1  = Poly([1],:s)
@@ -123,7 +123,7 @@ degreepm2 = 8
 ny  = 2
 nu  = 2
 A   = randn(ny*(degreepm2+1),nu)
-B   = eye(Float64,2)
+B   = Matrix{Float64}(I,2,2)
 pm1[1].a
 pm2 = PolyMatrix(A, (ny,nu))
 pm3 = PolyMatrix(B)
@@ -192,13 +192,13 @@ for elem in pm2
 end
 
 for idx in eachindex(pm3)
-  @test degree(pm3[idx]) == 0
+  @test degree(pm3[idx]) <= 0   # Polynomial.jl shifted from degree(p-p)=0 to degree(p-p)=-1
 end
 
 @test coeffs(pm3[end]) ≈ coeffs(one(Poly{Float64}))
 #@inferred coeffs(pm3[end])
 
-# test transpose and ctranspose
+# test transpose and adjoint
 pm4[2] = p3
 pm5 = transpose(pm4)
 @test coeffs(pm4[2]) ≈ coeffs(pm5[3])
@@ -206,8 +206,8 @@ pm5 = transpose(pm4)
 
 C   = randn(2,2) + randn(2,2)im
 pm6 = PolyMatrix(C)
-@test coeffs(ctranspose(pm6))[0] ≈ ctranspose(C)
-#@inferred ctranspose(pm4)
+@test coeffs(adjoint(pm6))[0] ≈ adjoint(C)
+#@inferred adjoint(pm4)
 
 # test rank
 p1  = Poly([1],:s)

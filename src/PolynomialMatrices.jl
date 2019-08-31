@@ -5,21 +5,25 @@ module PolynomialMatrices
 using DataStructures
 using Polynomials
 using Compat
+using LinearAlgebra
+using DSP
+using SparseArrays
+using FFTW
 
 # Import functions for overloading
 import Polynomials: coeffs, degree, variable
-import Base: start, next, done
 import Base: promote_rule, convert, size, length
-import Base: +, -, *, /, inv, det
+import Base: +, -, *, /, inv
 import Base: getindex, setindex!, eltype, similar
 import Base: copy
-import Base: transpose, ctranspose
+import Base: transpose, adjoint
 import Base: summary
 import Base: insert!
 import Base: checkbounds
-import Base: filt!, filt
 import Compat.view
-import Base: vecnorm, norm, rank, isapprox, ==, isequal, hash
+import Base: isapprox, ==, isequal, hash
+import LinearAlgebra: det, norm, rank
+import DSP: filt!, filt
 
 # Export
 export PolyMatrix
