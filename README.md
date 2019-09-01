@@ -14,79 +14,140 @@
 [cc-img]: https://img.shields.io/codecov/c/github/neveritt/PolynomialMatrices.jl/master.svg?label=codecov
 [cc-link]: https://codecov.io/gh/neveritt/PolynomialMatrices.jl?branch=master
 
-## Description
 
-`PolynomialMatrices` aims at supporting univariate polynomial matrix calculations.
-The package extends `Polynomials`, and tries to provide a set of basic mathematical
-functionality between `Number`s, `Poly`s and `PolyMatrix` objects.
+The `PolynomialMatrices` Julia package provides a support for calculations with univariate [polynomial matrices](https://en.wikipedia.org/wiki/Polynomial_matrix), that is, matrices whose entries are univariate polynomials, such as
 
-## Basic Usage
+```math
+        [ 3s²+2s+1     1 ]
+P(s) =  |                |
+        [    2s        s ].
+```
 
-The easiest way to construct a `PolyMatrix` object is to call its constructor
-with a matrix of `Poly` objects. A `PolyMatrix` is implemented and stored as a
-`dict`, mapping from the order to the coefficient matrices. It can thus also
-be constructed from a `dict`.
+Tighly related to systems of linear ordinary differential or difference equations, these mathematical objects are useful in disciplines such as automatic control and signal processing.
 
-As it is implemented now, `PolyMatrix` objects do not allow for mixing
-different variables --- a `PolyMatrix` object can only operate together
-with `PolyMatrix` objects with the same variable.
+## Polynomial matrix in Julia as an `Array` of polynomials
 
-For more information, check the documentation with `?PolynomialMatrices` command.
-
-#### Example
+This matrix of univariate polynomials can be created in Julia by combining the functionality of the standard Julia `Array` (or `Matrix`) type and the `Poly` type provided by the [`Polynomials`](https://github.com/JuliaMath/Polynomials.jl) package. Our example polynomial matrix can be entered in Julia as
 
 ```julia
 julia> using Polynomials
-julia> using PolynomialMatrices
 
-julia> # construct PolyMatrix from matrix of polynomials
-julia> m = [Poly([1, 2, 3]) Poly([1]); Poly([0,2]) Poly([0,1])]
+julia> M = [Poly([1, 2, 3]) Poly([1]); Poly([0,2]) Poly([0,1])]
 2×2 Array{Polynomials.Poly{Int64,2}:
   Poly(1 + 2⋅x + 3⋅x^2)  Poly(1)
   Poly(2⋅x)              Poly(x)
-julia> pm1 = PolyMatrix(m)
+```
+
+The trouble with the resulting matrix is that the number of operations we can do over such objest is quite limited. If, for example, we want to check column-reducedness or perform triangularization, plain Julia has no functionality for that. And now `PolynomialMatrices` package enters the stage...
+
+## Polynomial matrix in Julia as `PolyMatrix`
+
+Using `PolynomialMatrices` package, we convert our array of polynomials into a `PolyMatrix` type as in
+
+```julia
+julia> using PolynomialMatrices
+
+julia> P = PolyMatrix(M)
 2×2 PolyArray{Int64,2}:
   Poly(1 + 2⋅x + 3⋅x^2)  Poly(1)
   Poly(2⋅x)              Poly(x)
+```
 
-julia> pm1(1)
-2×2 Array{Int64,2}:
-  6  1
-  2  1
+for which many operations are now defined. For example, a polynomial matrix `P` can be transformed into an upper triangular `R` by premultplication by unimodular `U` matrix using
 
-julia> # construct PolyMatrix from dictionary
-julia> d = Dict(0=>[1 1;0 0], 1=>[2 0;2 1], 2=>[3 0;0 0]);
-julia> pm2 = PolyMatrix(d,:s)
-2×2 PolyArray{Int64,2}:
-  Poly(1 + 2⋅s + 3⋅s^2)  Poly(1)
-  Poly(2⋅s)              Poly(s)
+```julia
+julia> R,U = rtriang(P)
+(Poly{Float64}[Poly(-0.5454545454545455) Poly(-0.5454545454545454 + 0.6666666666666669*x + 0.5757575757575755*x^2 - 0.36363636363636365*x^3); Poly(0.0) Poly(-0.2357022603955159*x + 0.4714045207910319*x^2 + 0.7071067811865472*x^3)], Poly{Float64}[Poly(-0.5454545454545454 + 0.24242424242424268*x) Poly(0.4242424242424243 + 0.5757575757575756*x - 0.36363636363636365*x^2); Poly(-0.4714045207910317*x) Poly(0.23570226039551567 + 0.47140452079103196*x + 0.7071067811865472*x^2)])
 
-julia> pm2(1)
-2×2 Array{Int64,2}:
-  6  1
-  2  1
+julia> R
+2×2 PolyMatrix{Float64,Array{Float64,2},Val{:x},2}:
+ Poly(-0.545455)  Poly(-0.545455 + 0.666667*x + 0.575758*x^2 - 0.363636*x^3)
+ Poly(0.0)        Poly(-0.235702*x + 0.471405*x^2 + 0.707107*x^3)
+```
 
-julia> # construct PolyMatrix from three-dimensional array
-julia> a = zeros(Int,2,2,3);
-julia> a[:,:,1] = [1 1;0 0];
-julia> a[:,:,2] = [2 0;2 1];
-julia> a[:,:,3] = [3 0;0 0];
-julia> pm3 = PolyMatrix(a,:z)
-2×2 PolyArray{Int64,2}:
-  Poly(1 + 2⋅z + 3⋅z^2)  Poly(1)
-  Poly(2⋅z)              Poly(z)
+Or the matrix can be evaluated at a given value of its independent variable
 
-julia> pm3(1)
+```julia
+julia> P(1)
 2×2 Array{Int64,2}:
   6  1
   2  1
 ```
 
-### Convenience functions
+And many more...
 
-Some functions exist for your convenience when working with `PolynomialMatrices`s.
+## Polynomial matrix viewed (and entered) as a matrix polynomial
+A very useful interpretation of a polynomial matrix is that of a matrix polynomial. That is, a polynomial whose coefficients are not just numbers but matrices. Our original example can thus be written as
 
-Please read the corresponding documentation in Julia by issuing `?coeffs`, `?degree`,
-`?variable`, `?vartype`, `?col_degree`, `?row_degree`, `?high_col_deg_matrix`,
-`?high_row_deg_matrix`, `?is_col_proper`, `?is_row_proper`,
-`?colred` or `?rowred`, `?ltriang`, `rtriang`, `hermite`.
+```math
+        [ 1  1 ]   [ 2  0 ]     [ 3  0 ]
+P(s) =  |      | + |      | s + |      | s²
+        [ 0  0 ]   [ 2  1 ]     [ 0  0 ].
+```
+
+Hence, a natural way to enter a polynomial matrix in Julia is by entering a 3D array of coefficients matrices (of the corresponding matrix polynomial).
+
+```julia
+julia> A = zeros(Int,2,2,3);
+julia> A[:,:,1] = [1 1;0 0];
+julia> A[:,:,2] = [2 0;2 1];
+julia> A[:,:,3] = [3 0;0 0];
+
+julia> P = PolyMatrix(A,:z)
+2×2 PolyArray{Int64,2}:
+  Poly(1 + 2⋅z + 3⋅z^2)  Poly(1)
+  Poly(2⋅z)              Poly(z)
+```
+
+## Polynomial matrix stored internally (and entered) as a dictionary
+
+A `PolyMatrix` is implemented and stored as a `dict`, mapping from the powers (of the variables) to the coefficient matrices. It can thus also be constructed from a `dict`.
+
+```julia
+julia> d = Dict(0=>[1 1;0 0], 1=>[2 0;2 1], 2=>[3 0;0 0]);
+julia> P = PolyMatrix(d,:s)
+2×2 PolyArray{Int64,2}:
+  Poly(1 + 2⋅s + 3⋅s^2)  Poly(1)
+  Poly(2⋅s)              Poly(s)
+```
+
+## `PolynomialMatrice` package is restricted to univariate polynomials only, for multivariate polynomials look elsewhere
+
+As it is implemented now, `PolyMatrix` objects do not allow for mixing
+different variables --- a `PolyMatrix` object can only operate together
+with `PolyMatrix` objects with the same variable. For multivariate polynomials, you may want to check [`MultivariatePolynomials`](https://github.com/JuliaAlgebra/MultivariatePolynomials.jl) package.
+
+## Documentation
+
+For more information, check the documentation with `?PolynomialMatrices` command.
+
+## List of functions for `PolyMatrix` objects
+
+The functions for polynomial matrices implemented in `PolynomialMatrices` package are:
+
+### Inquiry about parameters of the polynomial matrix
+* coeffs
+* degree
+* variable
+* vartype
+* col_degree
+* row_degree
+* high_col_deg_matrix
+* high_row_deg_matrix
+
+### Analysis
+* is_col_proper
+* is_row_proper
+
+### Reductions, conversions
+* colred
+* rowred
+* ltriang
+* rtriang
+* hermite.
+
+## Future plans
+* `det` for computing the determinant of a polynomial matrix.
+* `roots` for computing the roots (or zeros) of a polynomial matrix.
+* ...
+* separate (but related) packages `PolynomialMatrixEquations` and `PolynomialMatrixFactorizations` are planned.
