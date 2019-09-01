@@ -93,10 +93,10 @@ julia> A[:,:,1] = [1 1;0 0];
 julia> A[:,:,2] = [2 0;2 1];
 julia> A[:,:,3] = [3 0;0 0];
 
-julia> P = PolyMatrix(A,:z)
+julia> P = PolyMatrix(A,:s)
 2×2 PolyArray{Int64,2}:
-  Poly(1 + 2⋅z + 3⋅z^2)  Poly(1)
-  Poly(2⋅z)              Poly(z)
+  Poly(1 + 2⋅s + 3⋅s^2)  Poly(1)
+  Poly(2⋅s)              Poly(s)
 ```
 
 ## Polynomial matrix stored internally (and entered) as a dictionary
