@@ -27,7 +27,7 @@ Tighly related to systems of linear ordinary differential or difference equation
 
 ## Polynomial matrix in Julia as an `Array` of polynomials
 
-This matrix of univariate polynomials can be created in Julia by combining the functionality of the standard Julia `Array` (or `Matrix`) type and the `Poly` type provided by the [`Polynomials`](https://github.com/JuliaMath/Polynomials.jl) package. Our example polynomial matrix can be entered in Julia as
+A matrix of univariate polynomials can be created in Julia by combining the functionality of the standard Julia `Array` (or `Matrix`) type and the `Poly` type provided by the [`Polynomials`](https://github.com/JuliaMath/Polynomials.jl) package. Our example polynomial matrix can be entered in Julia as
 
 ```julia
 julia> using Polynomials
@@ -111,7 +111,7 @@ julia> P = PolyMatrix(d,:s)
   Poly(2⋅s)              Poly(s)
 ```
 
-## `PolynomialMatrice` package is restricted to univariate polynomials only, for multivariate polynomials look elsewhere
+## `PolynomialMatrices` package is restricted to univariate polynomials only, for multivariate polynomials look elsewhere
 
 As it is implemented now, `PolyMatrix` objects do not allow for mixing
 different variables --- a `PolyMatrix` object can only operate together
@@ -147,7 +147,8 @@ The functions for polynomial matrices implemented in `PolynomialMatrices` packag
 * hermite.
 
 ## Future plans
-* `det` for computing the determinant of a polynomial matrix.
-* `roots` for computing the roots (or zeros) of a polynomial matrix.
+* `det` for computing the determinant of a polynomial matrix
+* `roots` for computing the roots (or zeros) of a polynomial matrix
+* some state space realization from a fraction of two polynomial matrices
 * ...
 * separate (but related) packages `PolynomialMatrixEquations` and `PolynomialMatrixFactorizations` are planned.
