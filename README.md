@@ -117,34 +117,23 @@ As it is implemented now, `PolyMatrix` objects do not allow for mixing
 different variables --- a `PolyMatrix` object can only operate together
 with `PolyMatrix` objects with the same variable. For multivariate polynomials, you may want to check [`MultivariatePolynomials`](https://github.com/JuliaAlgebra/MultivariatePolynomials.jl) package.
 
-## Documentation
-
-For more information, check the documentation with `?PolynomialMatrices` command.
-
 ## List of functions for `PolyMatrix` objects
 
 The functions for polynomial matrices implemented in `PolynomialMatrices` package are:
 
 ### Inquiry about parameters of the polynomial matrix
-* coeffs
-* degree
-* variable
-* vartype
-* col_degree
-* row_degree
-* high_col_deg_matrix
-* high_row_deg_matrix
+* `coeffs`
+* `degree`, `col_degree`, `row_degree`
+* `variable`, `vartype`
+* `high_col_deg_matrix`, `high_row_deg_matrix`
 
 ### Analysis
-* is_col_proper
-* is_row_proper
+* `is_col_proper`, `is_row_proper`
 
 ### Reductions, conversions
-* colred
-* rowred
-* ltriang
-* rtriang
-* hermite.
+* `colred`, `rowred`
+* `ltriang`, `rtriang`
+* `hermite`.
 
 ## Future plans
 * `det` for computing the determinant of a polynomial matrix
