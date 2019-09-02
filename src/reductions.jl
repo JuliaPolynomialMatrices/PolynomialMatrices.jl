@@ -279,7 +279,7 @@ function _ltriang(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=
     while i <= mₛ
       if Σb[i] == Σb[i-1]
         qi,Li = qr(L[Σb[i]:end,i-1:end]')
-        U[i-1:end,:]         = transpose(qi)*Up1  = Poly([1])
+        U[i-1:end,:]         = transpose(qi)*U[i-1:end,:]
         L[Σb[i]:end,i-1:end] = Li'
         triangularshape = false
       end
