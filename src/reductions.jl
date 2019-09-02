@@ -280,26 +280,6 @@ function _ltriang(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=
       if Σb[i] == Σb[i-1]
         qi,Li = qr(L[Σb[i]:end,i-1:end]')
         U[i-1:end,:]         = transpose(qi)*Up1  = Poly([1])
-p2  = Poly([2,1,3])
-p3  = Poly([2,3,4])
-m   = [p1 p2; p2 p1]
-pm1 = PolyMatrix(m, Val{:x})
-#@inferred PolyMatrix(m, Val{:x})
-
-d = Dict(0=>[1 2;2 1], 1=>[0 1;1 0], 2=>[0 3;3 0])
-@test pm1 == PolyMatrix(d)
-#@inferred PolyMatrix(d, Val{:x})
-@test_throws DimensionMismatch PolyMatrix(Dict{Int,Matrix{Int}}())
-
-d = Dict(0=>[1 2;2 1], 1=>[0 1;1 0; 0 0])
-@test_throws DimensionMismatch PolyMatrix(d)
-
-degreepm2 = 8
-ny  = 2
-nu  = 2
-A   = randn(ny*(degreepm2+1),nu)
-B   = Matrix{Float64}(I,2,2)
-[i-1:end,:]
         L[Σb[i]:end,i-1:end] = Li'
         triangularshape = false
       end
