@@ -153,7 +153,7 @@ function _mulconv(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:P
 
   # do the calculations
   for k in keys(klist)
-    vk = zeros(vr)
+    vk = zero(vr)
     for v in klist[k]
       vk += c1[v[1]]*p2[v[2]]
     end
@@ -393,7 +393,7 @@ function inv(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
   ar = _truncate(T,ifft(a))
   rdet = Poly(ar, W)
 
-  v2  = zeros(B)
+  v2  = zero(B)
   for k in 1:dn
     for col in 1:n
       for row in 1:n
