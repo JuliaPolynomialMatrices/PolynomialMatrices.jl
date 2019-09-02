@@ -53,7 +53,16 @@ julia> P = PolyMatrix(M)
   Poly(2⋅x)              Poly(x)
 ```
 
-for which many operations are now defined. For example, a polynomial matrix `P` can be transformed into an upper triangular `R` by premultplication by unimodular `U` matrix using
+for which many operations are now defined. For example, the matrix can be evaluated at a given value of its independent variable
+
+```julia
+julia> P(1)
+2×2 Array{Int64,2}:
+  6  1
+  2  1
+```
+
+Or, a polynomial matrix `P` can be transformed into an upper triangular `R` by premultplication by unimodular `U` using
 
 ```julia
 julia> R,U = rtriang(P)
@@ -64,17 +73,7 @@ julia> R
  Poly(-0.545455)  Poly(-0.545455 + 0.666667*x + 0.575758*x^2 - 0.363636*x^3)
  Poly(0.0)        Poly(-0.235702*x + 0.471405*x^2 + 0.707107*x^3)
 ```
-
-Or the matrix can be evaluated at a given value of its independent variable
-
-```julia
-julia> P(1)
-2×2 Array{Int64,2}:
-  6  1
-  2  1
-```
-
-And many more...
+And some more computation with polynomial matrices is offered by the package.
 
 ## Polynomial matrix viewed (and entered) as a matrix polynomial
 A very useful interpretation of a polynomial matrix is that of a matrix polynomial. That is, a polynomial whose coefficients are not just numbers but matrices. Our original example can thus be written as
@@ -101,7 +100,7 @@ julia> P = PolyMatrix(A,:s)
 
 ## Polynomial matrix stored internally (and entered) as a dictionary
 
-A `PolyMatrix` is implemented and stored as a `dict`, mapping from the powers (of the variables) to the coefficient matrices. It can thus also be constructed from a `dict`.
+A `PolyMatrix` is implemented and stored as a `dict`, mapping from the powers (of the variables) to the coefficient matrices. It can thus also be constructed from a `dict` as in
 
 ```julia
 julia> d = Dict(0=>[1 1;0 0], 1=>[2 0;2 1], 2=>[3 0;0 0]);
@@ -110,30 +109,38 @@ julia> P = PolyMatrix(d,:s)
   Poly(1 + 2⋅s + 3⋅s^2)  Poly(1)
   Poly(2⋅s)              Poly(s)
 ```
+Individual coefficient matrices can be accessed accordingly --- the coefficient dictionary is obtained using `coeffs` function and the individual coefficient matrices are accessed using keys. For example, the coefficient matrix with the 1st power of the variable can be obtained using
 
-## `PolynomialMatrices` package is restricted to univariate polynomials only, for multivariate polynomials look elsewhere
+```julia
+julia> C = coeffs(P)
+DataStructures.SortedDict{Int64,Array{Int64,2},Base.Order.ForwardOrdering} with 3 entries:
+  0 => [1 1; 0 0]
+  1 => [2 0; 2 1]
+  2 => [3 0; 0 0]
 
-As it is implemented now, `PolyMatrix` objects do not allow for mixing
-different variables --- a `PolyMatrix` object can only operate together
-with `PolyMatrix` objects with the same variable. For multivariate polynomials, you may want to check [`MultivariatePolynomials`](https://github.com/JuliaAlgebra/MultivariatePolynomials.jl) package.
+julia> C[1]
+2×2 Array{Int64,2}:
+ 2  0
+ 2  1
+```
 
 ## List of functions for `PolyMatrix` objects
 
 The functions for polynomial matrices implemented in `PolynomialMatrices` package are:
 
 ### Inquiry about parameters of the polynomial matrix
-* `coeffs`
-* `degree`, `col_degree`, `row_degree`
-* `variable`, `vartype`
-* `high_col_deg_matrix`, `high_row_deg_matrix`
+* `coeffs`: dictionary of coefficient matrices, keys are the powers
+* `degree`, `col_degree`, `row_degree`: degree, column and row degrees
+* `variable`, `vartype`: polynomial corresponding to the variable, symbol of the variable
+* `high_col_deg_matrix`, `high_row_deg_matrix`: coefficient matrices corresponding to leading column and row degrees, respectively.
 
 ### Analysis
-* `is_col_proper`, `is_row_proper`
+* `is_col_proper`, `is_row_proper`: checking if the matrix is column- and row-proper (also column- and row-reduced)
 
 ### Reductions, conversions
-* `colred`, `rowred`
-* `ltriang`, `rtriang`
-* `hermite`.
+* `colred`, `rowred`: column and row degree reduction of a polynomial matrix
+* `ltriang`, `rtriang`: conversion to a lower left and uppper right triangular polynomial matrix
+* `hermite`: conversion to hermite form.
 
 ## Future plans
 * `det` for computing the determinant of a polynomial matrix
@@ -141,3 +148,9 @@ The functions for polynomial matrices implemented in `PolynomialMatrices` packag
 * some state space realization from a fraction of two polynomial matrices
 * ...
 * separate (but related) packages `PolynomialMatrixEquations` and `PolynomialMatrixFactorizations` are planned.
+
+## `PolynomialMatrices` package is restricted to univariate polynomials only, for multivariate polynomials look elsewhere
+
+As it is implemented now, `PolyMatrix` objects do not allow for mixing
+different variables --- a `PolyMatrix` object can only operate together
+with `PolyMatrix` objects with the same variable. For multivariate polynomials, you may want to check [`MultivariatePolynomials`](https://github.com/JuliaAlgebra/MultivariatePolynomials.jl) package.
