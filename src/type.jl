@@ -67,13 +67,13 @@ end
 
 function PolyMatrix(d::Dict{Int,M}, var::Type{Val{W}}) where {M<:AbstractArray,W}
   if length(d) ≤ 0
-    throw(DomainError(d,"PolyMatrix: length(d) == 0"))
+    throw(DimensionMismatch("length(d) == 0"))
   end
   c = SortedDict(d)
   n,m = size(first(c)[2])
   for (k,v) in c
     if size(v) != (n,m)
-      throw(DomainError(d,"PolyMatrix: size of elements not consistent"))
+      throw(DimensionMismatch("the coefficient matrices that should define a polynomial matrix differ in sizes"))
     end
   end
   PolyMatrix(c, (n,m), Val{W})
@@ -86,7 +86,7 @@ function PolyMatrix(PM::M1) where M1<:AbstractArray
 end
 
 function PolyMatrix(PM::AbstractArray{Poly{T},N}, ::Type{Val{W}}) where {T,N,W}
-  N <= 2 || error("PolyMatrix: higher order arrays not supported at this point")
+  N <= 2 || error("higher order arrays not supported at this point")
   M = typeof(similar(PM, T)) # NOTE: Is there a more memory-efficient way to obtain M?
   c = SortedDict(Dict{Int,M}())
   # find the union of all index sets of all polynomials in the matrix PM
@@ -129,8 +129,7 @@ function PolyMatrix(A::M, dims::Tuple{Int}, ::Type{Val{W}}) where {M<:AbstractAr
   ny = dims[1]
   dn = div(size(A,1), ny)
   if rem(size(A,1), ny) != 0
-    @warn "PolyMatrix: dimensions are not consistent"
-    throw(DomainError())
+    throw(DimensionMismatch("dimensions are not consistent"))
   end
   p0 = dn > 0 ? p0 = A[1:ny] : zeros(eltype(A), dims)
   c  = SortedDict(Dict{Int,typeof(p0)}())
@@ -150,7 +149,7 @@ function PolyMatrix(A::M, dims::Tuple{Int,Int}, ::Type{Val{W}}; reverse::Bool=fa
   ny = dims[1]
   dn = div(size(A,1), ny)
   if rem(size(A,1), ny) != 0 || size(A,2) != dims[2]
-    throw(DomainError((A,dims),"PolyMatrix: dimensions are not consistent"))
+    throw(DimensionMismatch("dimensions are not consistent"))
   end
   p0 = dn > 0 ? A[1:ny, :] : zeros(eltype(A),dims)
   c  = SortedDict(Dict{Int,typeof(p0)}())
@@ -168,8 +167,7 @@ end
 
 function PolyMatrix(A::M, dims::Tuple{Int,Int,Int}, ::Type{Val{W}}) where {M<:AbstractArray,W}
   if size(A) != dims && dims[3] < 1
-    @warn "PolyMatrix: dimensions are not consistent"
-    throw(DomainError())
+    throw(DimensionMismatch("dimensions are not consistent"))
   end
   dn = dims[3]
   p0 = A[:, :, 1]

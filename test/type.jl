@@ -9,10 +9,10 @@ pm1 = PolyMatrix(m, Val{:x})
 d = Dict(0=>[1 2;2 1], 1=>[0 1;1 0], 2=>[0 3;3 0])
 @test pm1 == PolyMatrix(d)
 #@inferred PolyMatrix(d, Val{:x})
-@test_throws DomainError PolyMatrix(Dict{Int,Matrix{Int}}())
+@test_throws DimensionMismatch PolyMatrix(Dict{Int,Matrix{Int}}())
 
 d = Dict(0=>[1 2;2 1], 1=>[0 1;1 0; 0 0])
-@test_throws DomainError PolyMatrix(d)
+@test_throws DimensionMismatch PolyMatrix(d)
 
 degreepm2 = 8
 ny  = 2
@@ -20,8 +20,8 @@ nu  = 2
 A   = randn(ny*(degreepm2+1),nu)
 B   = Matrix{Float64}(I,2,2)
 
-@test_throws DomainError PolyMatrix(A, (5,nu))
-@test_throws DomainError PolyMatrix(A, (ny,3))
+@test_throws DimensionMismatch PolyMatrix(A, (5,nu))
+@test_throws DimensionMismatch PolyMatrix(A, (ny,3))
 pm2 = PolyMatrix(A, (ny,nu))
 pm3 = PolyMatrix(B)
 #@inferred PolyMatrix(A, (ny,nu), Val{:x})
