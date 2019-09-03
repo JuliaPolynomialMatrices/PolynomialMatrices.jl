@@ -487,7 +487,7 @@ function colred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
     end
 
     # Unimodular matrix Utemp
-    Utemp = SortedDict(0 => Matrix{Float64}(num_col,num_col))
+    Utemp = SortedDict(0 => Matrix{Float64}(undef,num_col,num_col))
     for i = 1:max_temp-minimum(k[indN[1:num_nz]])
       insert!(Utemp, i, zeros(T,num_col,num_col))
     end
@@ -584,7 +584,7 @@ function colred(p1::PolyMatrix{T,M1,Val{W},N1},
           if haskey(c2,new_key)
             c2[new_key][:,Nmax] += new_update
           else
-            v2 = zeros(first(c2)[2])
+            v2 = zero(first(c2)[2])
             v2[:,Nmax] += new_update
             insert!(c2, new_key, v2)
           end
@@ -605,7 +605,7 @@ function rowred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
   p_temp  = copy(p)
   c       = coeffs(p_temp)  # Dictionary of coefficient matrices of p
   num_row = size(p,1)      # Number of rows of p
-  U       = PolyMatrix(Matrix{Float64}(num_row,num_row), Val{W})
+  U       = PolyMatrix(Matrix{Float64}(undef,num_row,num_row), Val{W})
 
   indN    = zeros(Int,num_row)  # Collection of non-zero entries of n
   while true
