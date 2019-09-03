@@ -1,8 +1,7 @@
 zero## Basic operations between polynomial matrices
 function +(p1::PolyMatrix{T1,M1,Val{W},N}, p2::PolyMatrix{T2,M2,Val{W},N}) where {T1,M1,W,N,T2,M2}
   if size(p1) ≠ size(p2)
-    @warn "+(p1,p2): size(p1) ≠ size(p2)"
-    throw(DomainError())
+    throw(DimensionMismatch("the two polynomial matrices are of incompatible sizes"))
   end
   _add(p1,p2)
 end
@@ -57,8 +56,7 @@ function _add(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:Poly}
 end
 
 function +(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N}) where {T1,M1,W1,W2,N,T2,M2}
-  @warn "p1+p2: `p1` ($T1,$W1) and `p2` ($T2,$W2) have different variables"
-  throw(DomainError())
+  throw(ArgumentError("the two polynomial matrices have different variables"))
 end
 
 
@@ -73,23 +71,20 @@ end
 -(p1::PolyMatrix{T1,M1,Val{W},N}, p2::PolyMatrix{T2,M2,Val{W},N}) where {T1,M1,W,N,T2,M2} = +(p1,-p2)
 
 function -(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N}) where {T1,M1,W1,W2,N,T2,M2}
-  @warn "p1-p2: `p1` ($T1,$W1) and `p2` ($T2,$W2) have different variables"
-  throw(DomainError())
+  throw(ArgumentError("the two polynomial matrices have different variables"))
 end
 
 # heuristic used below was found by benchmarking
 function *(p1::PolyMatrix{T1,M1,Val{W},2}, p2::PolyMatrix{T2,M2,Val{W},2}) where {T1,M1,W,T2,M2}
   if size(p1,2) ≠ size(p2,1)
-    @warn "*(p1,p2): size(p1,2) ≠ size(p2,1)"
-    throw(DomainError())
+    throw(DimensionMismatch("the two polynomial matrices are of incompatible sizes"))
   end
   _mul(p1,p2)
 end
 
 function *(p1::PolyMatrix{T1,M1,Val{W},2}, p2::PolyMatrix{T2,M2,Val{W},1}) where {T1,M1,W,T2,M2}
   if size(p1,2) ≠ size(p2,1)
-    @warn "*(p1,p2): size(p1,2) ≠ size(p2,1)"
-    throw(DomainError())
+    throw(DimensionMismatch("the two polynomial matrices are of incompatible sizes"))
   end
   _mul(p1,p2)
 end
@@ -238,8 +233,7 @@ function _fftmatrix(p::Poly{T1}, ::Type{T}, dn::Integer) where {T1,T}
 end
 
 function *(p1::PolyMatrix{T1,M1,Val{W1},N}, p2::PolyMatrix{T2,M2,Val{W2},N}) where {T1,M1,W1,W2,N,T2,M2}
-  @warn "p1*p2: `p1` ($T1,$W1) and `p2` ($T2,$W2) have different variables"
-  throw(DomainError())
+  throw(ArgumentError("the two polynomial matrices have different variables"))
 end
 
 ## Basic operations between polynomial matrices and AbstractArrays
@@ -347,7 +341,7 @@ end
 
 # determinant
 function det(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
-  size(p,1) == size(p,2) || throw(DimensionMismatch("det: PolyMatrix must be square"))
+  size(p,1) == size(p,2) || throw(DimensionMismatch("the polynomial matrix must be square for a determinant to be defined"))
   n  = size(p,1)
   dn = (degree(p))*n+1
   # copy all elements into three-dimensional matrix
@@ -379,7 +373,7 @@ end
 # inversion
 # return determinant polynomial and adjugate polynomial matrix
 function inv(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
-  size(p,1) == size(p,2) || throw(DimensionMismatch("det: PolyMatrix must be square"))
+  size(p,1) == size(p,2) || throw(DimensionMismatch("the polynomial matrix must be square for a determinant to be defined"))
   n  = size(p,1)
   dn = degree(p)*n+1
   # copy all elements into three-dimensional matrix
