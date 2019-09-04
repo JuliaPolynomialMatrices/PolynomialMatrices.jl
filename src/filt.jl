@@ -5,7 +5,7 @@ end
 
 function filt(b::PolyMatrix{T,M1,W,N}, a::PolyMatrix{S,M2,W,N},
   x::AbstractArray{G}, si=_zerosi(b, a, G)) where {T,S,M1,M2,W,N,G}
-  filt!(Array{promote_type(T, G, S)}(size(a,1), size(x,2)), b, a, x, si)
+  filt!(Array{promote_type(T, G, S)}(undef, size(a,1), size(x,2)), b, a, x, si)
 end
 
 function filt!(out::AbstractArray{H}, b::PolyMatrix{T,M1,W,N},
@@ -42,7 +42,7 @@ function filt!(out::AbstractArray{H}, b::PolyMatrix{T,M1,W,N},
     return out
   end
 
-  if bs == 0 && bc[0]==zeros(bc[0])
+  if bs == 0 && bc[0]==zero(bc[0])
     _filt_ar!(out, a, x, si)
   else
     _filt_iir!(out, b, a, x, si)
@@ -55,8 +55,8 @@ function _filt_iir!(out::AbstractArray{T}, b::PolyMatrix{T,M1,W,N},
   silen = size(si,2)
   bc = coeffs(b)
   ac = coeffs(a)
-  v0b = zeros(similar(bc[first(keys(bc))]))
-  v0a = zeros(similar(ac[first(keys(ac))]))
+  v0b = zero(similar(bc[first(keys(bc))]))
+  v0a = zero(similar(ac[first(keys(ac))]))
   for i = 0:silen
     get!(bc, i, v0b) # inserts nonexisting entries as zeros
   end
@@ -84,7 +84,7 @@ function _filt_fir!(
   out::AbstractMatrix{T}, b::PolyMatrix{T,M1,W,N}, x, si=zeros(T, size(b,1), degree(b))) where {T,M1,W,N}
   silen = size(si,2)
   bc = coeffs(b)
-  v0 = zeros(similar(bc[first(keys(bc))]))
+  v0 = zero(similar(bc[first(keys(bc))]))
 
   # inserts nonexisting entries as zeros
   for i = 0:silen
@@ -111,7 +111,7 @@ function _filt_ar!(
   silen = size(si,2)
   ac = coeffs(a)
   val = zeros(T, size(a,1), 1)
-  v0 = zeros(similar(ac[first(keys(ac))]))
+  v0 = zero(similar(ac[first(keys(ac))]))
 
   # inserts nonexisting entries as zeros
   for i = 0:silen

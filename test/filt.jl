@@ -20,7 +20,7 @@ filt(pm1,pm2,x)
 
 filt(pm1,pm3,x) # filt fir
 filt(pm3,pm1,x) # filt ar
-PolynomialMatrices._filt_ar!(zeros(x),pm1,x)
+PolynomialMatrices._filt_ar!(zero(x),pm1,x)
 
 filt(pm1,pm1,x,zeros(2,2))
 filt(pm1,pm3,x,zeros(2,2))
