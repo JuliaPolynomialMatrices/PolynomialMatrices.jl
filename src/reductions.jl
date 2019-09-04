@@ -640,7 +640,7 @@ function rowred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
     end
 
     # Unimodular matrix Utemp
-    Utemp = SortedDict(0 => Matrix{Float64}(num_row,num_row))
+    Utemp = SortedDict(0 => Matrix{Float64}(undef,num_row,num_row))
     #insert!(Utemp, 0, )
     for i = 1:max_temp-minimum(k[indN[1:num_nz]])
       insert!(Utemp, i, zeros(T,num_row,num_row))
@@ -738,7 +738,7 @@ function rowred(p1::PolyMatrix{T,M1,Val{W},N1},
           if haskey(c2,new_key)
             c2[new_key][Nmax,:] += new_update
           else
-            v2 = zeros(first(c2)[2])
+            v2 = zero(first(c2)[2])
             v2[Nmax,:] += new_update
             insert!(c2, new_key, v2)
           end
