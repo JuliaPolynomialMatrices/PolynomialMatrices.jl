@@ -70,18 +70,18 @@ pm2 = copy(pm1)
 @test similar(pm1, (2,3))               == PolyMatrix(zeros(Int,2,3))
 @test similar(pm1, Int)                 == PolyMatrix(zeros(Int,2,2))
 
-sm1 = similar(pm1, Float64, (2,3))
-@test sm1         == PolyMatrix(zeros(Float64,2,3))
-@test typeof(sm1) == typeof(PolyMatrix(zeros(Float64,2,3)))
-#@inferred similar(pm1)
+sm1                                     = similar(pm1, Float64, (2,3))
+@test sm1                               == PolyMatrix(zeros(Float64,2,3))
+@test typeof(sm1)                       == typeof(PolyMatrix(zeros(Float64,2,3)))
+@inferred similar(pm1)
 
 @test similar(pm1, Poly{Float64})       == PolyMatrix(zeros(Float64,2,2))
 @test similar(pm1, Float64)             == PolyMatrix(zeros(Float64,2,2))
-#@inferred similar(pm1, Poly{Float64})
+@inferred similar(pm1, Poly{Float64})
 
 @test similar(pm1, Poly{Float64}, (2,)) == PolyMatrix(zeros(Float64,2))
 @test similar(pm1, Float64, (2,))       == PolyMatrix(zeros(Float64,2))
-#@inferred similar(pm1, Poly{Float64}, (2,))
+@inferred similar(pm1, Poly{Float64}, (2,))
 
 # test hcat vcat
 p1  = Poly([1])
@@ -92,26 +92,26 @@ pm1 = PolyMatrix(m1)
 pm2 = PolyMatrix(m2)
 
 @test hcat(pm1,pm2,pm1) == PolyMatrix(hcat(m1,m2,m1))
-#@inferred hcat(pm1,pm2,pm1)
+@inferred hcat(pm1,pm2,pm1)
 
 @test vcat(pm1,pm2,pm1) == PolyMatrix(vcat(m1,m2,m1))
-#@inferred vcat(pm1,pm2,pm1)
+@inferred vcat(pm1,pm2,pm1)
 
-@test cat(1,pm1,pm2,pm1) == PolyMatrix(vcat(m1,m2,m1))
-@test cat(2,pm1,pm2,pm1) == PolyMatrix(hcat(m1,m2,m1))
-#@inferred cat(1,pm1,pm2,pm1)
+@test cat(pm1,pm2,pm1;dims=1) == PolyMatrix(vcat(m1,m2,m1))
+@test cat(pm1,pm2,pm1;dims=2) == PolyMatrix(hcat(m1,m2,m1))
+#@inferred cat(pm1,pm2,pm1;dims=1)  # TODO cat is not properly implemented since @inferred do not give correct type
 
 hvcat(1, pm1, pm1)
-#@inferred hvcat(1, pm1, pm1)
+@inferred hvcat(1, pm1, pm1)
 
 @test [pm1 pm2; pm2 pm1] == PolyMatrix([m1 m2; m2 m1])
-#@inferred hvcat((2,2), pm1,pm2,pm2,pm1)
+@inferred hvcat((2,2), pm1,pm2,pm2,pm1)
 
-#@test vcat(pm1, Matrix{Int}(I,2,2)) == PolyMatrix(vcat(m1, Matrix{Int}(I,2,2)))
-#@inferred vcat(pm1, Matrix{Int}(I,2,2))
+@test vcat(pm1, Matrix{Int}(I,2,2)) == PolyMatrix(vcat(m1, Matrix{Int}(I,2,2)))
+@inferred vcat(pm1, Matrix{Int}(I,2,2))
 
-#@test hcat(pm1, Matrix{Float64}(I,2,2)) == PolyMatrix(hcat(m1, Matrix{Float64}(I,2,2)))
-#@inferred vcat(pm1, Matrix{Float64}(I,2,2))
+@test hcat(pm1, Matrix{Float64}(I,2,2)) == PolyMatrix(hcat(m1, Matrix{Float64}(I,2,2)))
+@inferred vcat(pm1, Matrix{Float64}(I,2,2))
 
 # test getindex
 p1  = Poly([1],:s)
@@ -129,17 +129,17 @@ pm2 = PolyMatrix(A, (ny,nu))
 pm3 = PolyMatrix(B)
 @test pm1[1].a ≈ p1.a
 @test typeof(pm1[1]) == Poly{Int}
-#@inferred pm1[1]
+@inferred pm1[1]
 
 t = pm1[1:2,2]
 @test coeffs(t[1]) ≈ coeffs(p2)
 @test coeffs(t[2]) ≈ coeffs(p1)
 @test typeof(pm1[1:2,2]) == PolyMatrix{Int,Vector{Int},Val{vartype(pm1)},1}
-#@inferred pm1[1:2,2]
+@inferred pm1[1:2,2]
 
 t = pm1[1:2,2:2]
 @test typeof(t) == PolyMatrix{Int,Matrix{Int},Val{vartype(pm1)},2}
-#@inferred pm1[1:2,2:2]
+@inferred pm1[1:2,2:2]
 
 # test setindex!
 p1  = Poly([0, 1])
@@ -196,18 +196,18 @@ for idx in eachindex(pm3)
 end
 
 @test coeffs(pm3[end]) ≈ coeffs(one(Poly{Float64}))
-#@inferred coeffs(pm3[end])
+@inferred coeffs(pm3[end])
 
 # test transpose and adjoint
 pm4[2] = p3
 pm5 = transpose(pm4)
 @test coeffs(pm4[2]) ≈ coeffs(pm5[3])
-#@inferred transpose(pm4)
+@inferred transpose(pm4)
 
 C   = randn(2,2) + randn(2,2)im
 pm6 = PolyMatrix(C)
 @test coeffs(adjoint(pm6))[0] ≈ adjoint(C)
-#@inferred adjoint(pm4)
+@inferred adjoint(pm4)
 
 # test rank
 p1  = Poly([1],:s)
