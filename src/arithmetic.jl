@@ -20,10 +20,10 @@ function _add(p1::PolyMatrix{T1,M1,Val{W},N},
   s₁  = setdiff(keys(c1), sᵢ)
   s₂  = setdiff(keys(c2), sᵢ)
   for k in s₁
-    insert!(cr, k, c1[k])
+    insert!(cr, k, copy(c1[k]))
   end
   for k in s₂
-    insert!(cr, k, c2[k])
+    insert!(cr, k, copy(c2[k]))
   end
   for k in sᵢ
     insert!(cr, k, c1[k]+c2[k])
@@ -44,10 +44,10 @@ function _add(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:Poly}
   s₁  = setdiff(_keys(c1), sᵢ)
   s₂  = setdiff(_keys(c2), sᵢ)
   for k in s₁
-    insert!(cr, k, c1[k])
+    insert!(cr, k, copy(c1[k]))
   end
   for k in s₂
-    insert!(cr, k, p2[k])
+    insert!(cr, k, copy(p2[k]))
   end
   for k in sᵢ
     insert!(cr, k, c1[k] .+ p2[k])
@@ -267,9 +267,9 @@ function _add(p1::PolyMatrix{T1,M1,Val{W},N}, v2::T2) where {T1,M1,W,N,T2<:Numbe
   cr    = SortedDict(Dict{Int,M}())
 
   for (k1,v1) in coeffs(p1)
-    insert!(cr, k1, v1)
+    insert!(cr, k1, copy(v1))
   end
-  cr[0] += v2
+  broadcast!(+,cr[0],cr[0],v2)
   return PolyMatrix(cr, size(p1), Val{W})
 end
 
