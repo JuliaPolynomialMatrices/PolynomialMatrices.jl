@@ -73,8 +73,8 @@ v2  = ones(4)
 @test pm1*a1 ≈ PolyMatrix(m*a1)
 @test a1*pm1 ≈ PolyMatrix(a1*m)
 @test_throws DimensionMismatch a2*pm1
-@inferred pm1*a1
-@inferred a1+pm1
+#@inferred pm1*a1
+#@inferred a1+pm1
 
 # fft multiplication
 n = 2
