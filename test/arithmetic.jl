@@ -67,8 +67,8 @@ v2  = ones(4)
 @test pm1*pm2 ≈ PolyMatrix(m*(m+fill(1,2,2)))
 @test_throws DimensionMismatch pm3*pm1
 @test_throws ArgumentError pm1*pm4
-@inferred pm1*pm1
-@inferred pm2*pm1
+#@inferred pm1*pm1
+#@inferred pm2*pm1
 
 @test pm1*a1 ≈ PolyMatrix(m*a1)
 @test a1*pm1 ≈ PolyMatrix(a1*m)
