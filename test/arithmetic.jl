@@ -99,7 +99,7 @@ pf  = Poly(randn(d), :s)
 
 # inverse
 #det2, adj2 = inv(pm2) TODO
-t2 = adj2*pm2
+#t2 = adj2*pm2
 #@test norm(t2[2,1])/norm(t2[1,1]) < Base.rtoldefault(Float64) TODO
 
 # determinant
