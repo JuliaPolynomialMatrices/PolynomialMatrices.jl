@@ -59,16 +59,16 @@ U₀ = PolyMatrix([one(s) zero(s); s+2 one(s)])
 R₀ = PolyMatrix([zero(s) -(s^3+4s^2+5s+2); s^2+4s+4 s+2])
 R,U = colred(p)
 @test isapprox(R, R₀)
-#@test isapprox(U, U₀)  # TODO fix bug
-#@test isapprox(p*U, R)
+@test isapprox(U, U₀)
+@test isapprox(p*U, R)
 
 R1,R2 = colred(p, p2)
 @test isapprox(R, R1)
 
 R,U = rowred(copy(transpose(p)))
 @test isapprox(R, copy(transpose(R₀)))
-#@test isapprox(U, copy(transpose(U₀)))
-#@test isapprox(U*transpose(p), R)
+@test isapprox(U, copy(transpose(U₀)))
+@test isapprox(U*transpose(p), R)
 
 R1,R2 = rowred(copy(transpose(p)), copy(transpose(p2)))
 @test isapprox(R, R1)
@@ -81,14 +81,14 @@ R₀ = PolyMatrix([zero(s) -(s^3+4s^2+5s+2); s^2+4s+4 s+2])
 #@test isapprox(p*U, R)
 #@test degree(R) == 0
 
-# R,U = rowred(p.')
+#R,U = rowred(transpose(p))
 #@test isapprox(PolyMatrix(U*p.'), R)
 
 # example 3 from "A Fortran 77 package for column reduction of polynomial matrices" Geurts, A.J. Praagman, C., 1998
 ϵ = 0.001
 p = PolyMatrix([s^3+s^2 ϵ*s+1 one(s); 2s^2 -one(s) -one(s); 3s^2 one(s) one(s)])
 R,U = colred(p)
-#@test isapprox(p*U, R)
+@test isapprox(p*U, R)
 
 #R,U = rowred(copy(transpose(p))) # TODO does not exit
 #@test isapprox(U*transpose(p), R)
@@ -99,10 +99,10 @@ p = PolyMatrix([s^3+s^2+2s+1 ϵ*s^2+2s+3 s^2+s+1   s-1;
                 s-1          -s+2       2s^2+s-1  2s+1;
                 s+3          2s-1       -s^2-2s+1 -s-2;
                 one(s)       -one(s)    3s+1       3*one(s)])
-#R,U = colred(p) # TODO this should work ?!
+#R,U = colred(p) # TODO this should work ?! does not exit
 # @test isapprox(p*U, R)
 
-#R,U = rowred(p.')
+#R,U = rowred(copy(transpose(p))) # TODO this should work ?! does not exit
 #@test isapprox(PolyMatrix(U*p.'), R)
 
 # left2right matrix fractional descriptions
