@@ -61,6 +61,10 @@ end
 end
 
 # Outer constructor
+function PolyMatrix(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
+  PolyMatrix(copy(coeffs(p)), vartype(p))
+end
+
 function PolyMatrix(d::Dict{Int,M}, var::SymbolLike=:x) where M<:AbstractArray
   PolyMatrix(d, Val{@compat Symbol(var)})
 end

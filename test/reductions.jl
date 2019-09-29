@@ -38,7 +38,7 @@ R₀  = PolyMatrix([one(s) s+1; zero(s) s^2])
 p₁  = PolyMatrix([s^2 zero(s); zero(s) s^2])
 p₂  = PolyMatrix([one(s) s+1])
 
-#R, V₁, V₂ = gcrd(p₁, p₂) TODO
+#R, V₁, V₂ = gcrd(p₁, p₂) #TODO
 
 #@test hermite(R)[1] ≈ hermite(R₀)[1] TODO
 #@test V₁*R ≈ p₁
@@ -82,7 +82,7 @@ R₀ = PolyMatrix([zero(s) -(s^3+4s^2+5s+2); s^2+4s+4 s+2])
 #@test degree(R) == 0
 
 #R,U = rowred(transpose(p))
-#@test isapprox(PolyMatrix(U*p.'), R)
+#@test isapprox(PolyMatrix(U*transpose(p)), R)
 
 # example 3 from "A Fortran 77 package for column reduction of polynomial matrices" Geurts, A.J. Praagman, C., 1998
 ϵ = 0.001

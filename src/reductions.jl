@@ -501,7 +501,14 @@ function colred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
 
       # Update coefficient matrices
       for i = 0:k[col]
-        c[max_temp-k[col]+i][:,Nmax] += n[col] / n[Nmax] * c[i][:,col]
+        key = max_temp-k[col]+i
+        if !haskey(c,key)
+          insert!(c, key, zeros(T,size(p)...))
+        end
+        if haskey(c,i) # if c does not have the the key i the update below is zero
+          v = c[key]
+          v[:,Nmax] += n[col] / n[Nmax] * c[i][:,col]
+        end
       end
 
       # Update Utemp
@@ -654,7 +661,14 @@ function rowred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
 
       # Update coefficient matrices
       for i = 0:k[row]
-        c[max_temp-k[row]+i][Nmax,:] += n[row] / n[Nmax] * c[i][row,:]
+        key = max_temp-k[row]+i
+        if !haskey(c,key)
+          insert!(c, key, zeros(T,size(p)...))
+        end
+        if haskey(c,i) # if c does not have the the key i the update below is zero
+          v = c[key]
+          v[Nmax,:] += n[row] / n[Nmax] * c[i][row,:]
+        end
       end
 
       # Update Utemp

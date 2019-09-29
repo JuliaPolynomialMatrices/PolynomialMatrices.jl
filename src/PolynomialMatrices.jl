@@ -14,7 +14,7 @@ using FFTW
 import Polynomials: coeffs, degree, variable
 import Base: promote_rule, convert, size, length
 import Base: +, -, *, /, inv
-import Base: getindex, setindex!, eltype, similar
+import Base: getindex, setindex!, firstindex, iterate, IteratorSize, IteratorEltype, lastindex, eltype, similar
 import Base: copy
 import Base: transpose, adjoint
 import Base: summary
