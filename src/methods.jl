@@ -1,16 +1,23 @@
 size(p::PolyMatrix) = p.dims
-size(p::PolyMatrix, i::Integer) = i ≤ length(p.dims) ? p.dims[i] : 1
+size(p::PolyMatrix, i::Int) = i ≤ length(p.dims) ? p.dims[i] : 1
 
-length(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}     = prod(size(p))
-# start(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}      = 1 # no longer needed in Julia 1.x but temporarily left here for possible consulting if things brake. The same below.
-# next(p::PolyMatrix{T,M,Val{W},N}, state) where {T,M,W,N}= p[state], state+1
-# done(p::PolyMatrix{T,M,Val{W},N}, state) where {T,M,W,N}= state > length(p)
-eltype(::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}      = Poly{T}
-vartype(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}    = W
-mattype(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}    = M
-@compat Base.IndexStyle(::Type{<:PolyMatrix})     = IndexLinear()
+length(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}                     = prod(size(p))
+iterate(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}                    = (p[1], 1)
+iterate(p::PolyMatrix{T,M,Val{W},N}, i::Int) where {T,M,W,N}        = i < lastindex(p) ? (p[i+1], i+1) : nothing
+IteratorSize(p::PolyMatrix{T,M,Val{W},N}, i::Int) where {T,M,W,N}   = HasShape{N}()
+IteratorEltype(p::PolyMatrix{T,M,Val{W},N}, i::Int) where {T,M,W,N} = HasEltype()
+eltype(::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}                      = Poly{T}
+vartype(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}                    = W
+mattype(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}                    = M
+@compat Base.IndexStyle(::Type{<:PolyMatrix})                           = IndexLinear()
 
 function similar(p::PolyMatrix{T,M,Val{W},N}, dims::NTuple{N2,Int}) where {T,M,W,N,N2}
+  _,v1 = coeffs(p) |> first
+  vr = zero(similar(v1, T, dims))
+  r = PolyMatrix(SortedDict(0=>vr), size(vr), Val{W})
+end
+
+function similar(p::PolyMatrix{T,M,Val{W},N}, dims::Int) where {T,M,W,N}
   _,v1 = coeffs(p) |> first
   vr = zero(similar(v1, T, dims))
   r = PolyMatrix(SortedDict(0=>vr), size(vr), Val{W})
@@ -53,7 +60,7 @@ function Base.cat(catdims, A::PolyMatrix{T,M,Val{W},N}...) where {T,M,W,N}
   return PolyMatrix(mpoly, Val{W})
 end
 
-function Base.hvcat(nbc::Integer, A::PolyMatrix{T,M,Val{W},N}...) where {T,M,W,N}
+function Base.hvcat(nbc::Int, A::PolyMatrix{T,M,Val{W},N}...) where {T,M,W,N}
   mvec  = map(_matrixofpoly, A)
   mpoly = hvcat(nbc, mvec...)
   return PolyMatrix(mpoly, Val{W})
@@ -85,7 +92,7 @@ function Base.checkbounds(p::PolyMatrix{T,M,Val{W},N}, I...) where {T,M,W,N}
   checkbounds(first(coeffs(p))[2], I...)
 end
 
-function getindex(p::PolyMatrix{T,M,Val{W},N}, i::Integer) where {T,M,W,N}
+function getindex(p::PolyMatrix{T,M,Val{W},N}, i::Int) where {T,M,W,N}
   @compat @boundscheck checkbounds(p, i)
   vr = zeros(T, degree(p)+1)
   for (k,v) in coeffs(p)
@@ -94,10 +101,18 @@ function getindex(p::PolyMatrix{T,M,Val{W},N}, i::Integer) where {T,M,W,N}
   r = Poly(vr, W)
 end
 
-function getindex(p::PolyMatrix{T,M,Val{W},N}, i::Integer, j::Integer) where {T,M,W,N}
+function getindex(p::PolyMatrix{T,M,Val{W},N}, i::Int, j::Int) where {T,M,W,N}
   vr = zeros(T, degree(p)+1)
   for (k,v) in coeffs(p)
     vr[k+1] = v[i,j]
+  end
+  r = Poly(vr, W)
+end
+
+function getindex(p::PolyMatrix{T,M,Val{W},N}, I::Vararg{Int, N2}) where {T,M,W,N,N2}
+  vr = zeros(T, degree(p)+1)
+  for (k,v) in coeffs(p)
+    vr[k+1] = v[I]
   end
   r = Poly(vr, W)
 end
@@ -114,7 +129,7 @@ function getindex(p::PolyMatrix{T,M,Val{W},N}, I...) where {T,M,W,N}
 end
 
 # setindex!
-function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::Poly{U}, i::Integer) where {T,M,W,N,U}
+function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::Poly{U}, i::Int) where {T,M,W,N,U}
   @compat @boundscheck checkbounds(Pm, i)
   c = coeffs(p)
   Pmc = coeffs(Pm)
@@ -140,7 +155,7 @@ function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::Poly{U}, i::Integer) where {
 end
 
 function setindex!(Pm::PolyMatrix{T,M,Val{W},2}, p::Poly{U},
-    i::Integer, j::Integer) where {T,M,W,U}
+    i::Int, j::Int) where {T,M,W,U}
   @compat @boundscheck checkbounds(Pm, i, j)
   c = coeffs(p)
   Pmc = coeffs(Pm)
@@ -191,8 +206,18 @@ function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::Poly{U},
   end
 end
 
+function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::AbstractArray{Poly{U}},
+    I...) where {T,M,W,N,U}
+  @compat @boundscheck checkbounds(Pm, I...)
+  c   = coeffs(Pm)
+  _,v = first(c)
+  for (i,pol) in zip(eachindex(view(v,I...)),p)
+    Pm[i] = pol
+  end
+end
+
 # setindex for number
-function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::T2, i::Integer) where {T,M,W,N,T2<:Number}
+function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::T2, i::Int) where {T,M,W,N,T2<:Number}
   @compat @boundscheck checkbounds(Pm, i)
   c = coeffs(Pm)
   hasconst = false
@@ -208,7 +233,7 @@ function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::T2, i::Integer) where {T,M,W
 end
 
 function setindex!(Pm::PolyMatrix{T,M,Val{W},2}, p::T2,
-    i::Integer, j::Integer) where {T,M,W,T2<:Number}
+    i::Int, j::Int) where {T,M,W,T2<:Number}
   @compat @boundscheck checkbounds(Pm, i, j)
   c = coeffs(Pm)
   hasconst = false
@@ -219,6 +244,21 @@ function setindex!(Pm::PolyMatrix{T,M,Val{W},2}, p::T2,
   if !hasconst
     v0 = spzeros(T, Pm.dims...)
     v0[i,j] = p
+    insert!(c, 0, v0)
+  end
+end
+
+function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::T2, I::Vararg{Int, N2}) where {T,M,W,N,T2<:Number,N2}
+  @compat @boundscheck checkbounds(Pm, I...)
+  c = coeffs(Pm)
+  hasconst = false
+  for (k,v) in c
+    v[I...] = k == 0 ? convert(T, p) : zero(T)
+    hasconst |= k == 0
+  end
+  if !hasconst
+    v0 = spzeros(T, Pm.dims...)
+    v0[I...] = p
     insert!(c, 0, v0)
   end
 end
@@ -237,6 +277,28 @@ function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::T2,
     v0[I...] = p
     insert!(c, 0, v0)
   end
+end
+
+function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::AbstractArray{T2},
+    I...) where {T,M,W,N,U,T2<:Number}
+  @compat @boundscheck checkbounds(Pm, I...)
+  c   = coeffs(Pm)
+  _,v = first(c)
+  for (i,pol) in zip(eachindex(view(v,I...)),p)
+    Pm[i] = pol
+  end
+end
+
+function firstindex(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
+  c   = coeffs(p)
+  _,v = first(c)
+  firstindex(v)
+end
+
+function lastindex(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
+  c   = coeffs(p)
+  _,v = first(c)
+  lastindex(v)
 end
 
 # insert!

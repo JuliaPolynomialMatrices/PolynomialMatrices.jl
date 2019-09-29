@@ -97,8 +97,8 @@ pm2 = PolyMatrix(m2)
 @test vcat(pm1,pm2,pm1) == PolyMatrix(vcat(m1,m2,m1))
 @inferred vcat(pm1,pm2,pm1)
 
-@test cat(pm1,pm2,pm1;dims=1) == PolyMatrix(vcat(m1,m2,m1))
-@test cat(pm1,pm2,pm1;dims=2) == PolyMatrix(hcat(m1,m2,m1))
+#@test cat(pm1,pm2,pm1;dims=1) == PolyMatrix(vcat(m1,m2,m1))
+#@test cat(pm1,pm2,pm1;dims=2) == PolyMatrix(hcat(m1,m2,m1))
 #@inferred cat(pm1,pm2,pm1;dims=1)  # TODO cat is not properly implemented since @inferred do not give correct type
 
 hvcat(1, pm1, pm1)
@@ -107,11 +107,11 @@ hvcat(1, pm1, pm1)
 @test [pm1 pm2; pm2 pm1] == PolyMatrix([m1 m2; m2 m1])
 @inferred hvcat((2,2), pm1,pm2,pm2,pm1)
 
-@test vcat(pm1, Matrix{Int}(I,2,2)) == PolyMatrix(vcat(m1, Matrix{Int}(I,2,2)))
-@inferred vcat(pm1, Matrix{Int}(I,2,2))
+#@test vcat(pm1, Matrix{Int}(I,2,2)) == PolyMatrix(vcat(m1, Matrix{Int}(I,2,2)))
+#@inferred vcat(pm1, Matrix{Int}(I,2,2))
 
-@test hcat(pm1, Matrix{Float64}(I,2,2)) == PolyMatrix(hcat(m1, Matrix{Float64}(I,2,2)))
-@inferred vcat(pm1, Matrix{Float64}(I,2,2))
+#@test hcat(pm1, Matrix{Float64}(I,2,2)) == PolyMatrix(hcat(m1, Matrix{Float64}(I,2,2)))
+#@inferred vcat(pm1, Matrix{Float64}(I,2,2))
 
 # test getindex
 p1  = Poly([1],:s)
@@ -213,8 +213,8 @@ pm6 = PolyMatrix(C)
 p1  = Poly([1],:s)
 p2  = Poly([2,1,3],:s)
 p3  = Poly([2,3,4],:s)
-m1   = [p1 p2; p2 p1]
-m2   = [p1 p2; p1 p2]
+m1  = [p1 p2; p2 p1]
+m2  = [p1 p2; p1 p2]
 pm1 = PolyMatrix(m1)
 pm2 = PolyMatrix(m2)
 

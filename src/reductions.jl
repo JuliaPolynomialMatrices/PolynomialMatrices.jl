@@ -37,7 +37,7 @@ function gcrd(p₁::PolyMatrix{T1,M1,Val{W},N},
   detU, adjU = inv(U)
   V     = adjU/detU(0)
   V₁    = V[1:n₁,1:m₁]
-  V₂    = V[n₁+(1:n₂),1:m₂]
+  V₂    = V[(1:n₂).+n₁,1:m₂]
   return R[1:m₁,1:m₁], V₁, V₂
 end
 
@@ -80,7 +80,7 @@ function gcld(p₁::PolyMatrix{T1,M1,Val{W},N},
   detU, adjU = inv(U)
   V     = adjU/detU(0)
   V₁    = V[1:n₁,1:m₁]
-  V₂    = V[1:n₁,m₁+(1:m₂)]
+  V₂    = V[1:n₁,(1:m₂).+m₁]
   return L[1:n₁,1:n₁], V₁, V₂
 end
 
@@ -171,7 +171,7 @@ julia> L
 function ltriang(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1) where {T1,M,W,N}
   n,m = size(p)
   if n < m || rank(p) < m
-    pₑ = vcat(p, PolyMatrix(Matrix{Float64}(undef,m,m), (m,m), Val{W}))
+    pₑ = vcat(p, PolyMatrix(Matrix{T1}(I,m,m), (m,m), Val{W}))
   else
     pₑ = p
   end
@@ -453,7 +453,7 @@ function colred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
   p_temp = copy(p)
   c       = coeffs(p_temp)         # Dictionary of coefficient matrices of p
   num_col = N < 2 ? 1 : size(p,2)  # Number of columns of p
-  U       = PolyMatrix(Matrix{Float64}(undef,num_col,num_col), Val{W})
+  U       = PolyMatrix(Matrix{Float64}(I,num_col,num_col), Val{W})
 
   indN    = zeros(Int,num_col)  # Collection of non-zero entries of n
   while true
@@ -487,7 +487,7 @@ function colred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
     end
 
     # Unimodular matrix Utemp
-    Utemp = SortedDict(0 => Matrix{Float64}(undef,num_col,num_col))
+    Utemp = SortedDict(0 => Matrix{Float64}(I,num_col,num_col))
     for i = 1:max_temp-minimum(k[indN[1:num_nz]])
       insert!(Utemp, i, zeros(T,num_col,num_col))
     end
@@ -501,7 +501,14 @@ function colred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
 
       # Update coefficient matrices
       for i = 0:k[col]
-        c[max_temp-k[col]+i][:,Nmax] += n[col] / n[Nmax] * c[i][:,col]
+        key = max_temp-k[col]+i
+        if !haskey(c,key)
+          insert!(c, key, zeros(T,size(p)...))
+        end
+        if haskey(c,i) # if c does not have the the key i the update below is zero
+          v = c[key]
+          v[:,Nmax] += n[col] / n[Nmax] * c[i][:,col]
+        end
       end
 
       # Update Utemp
@@ -605,7 +612,7 @@ function rowred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
   p_temp  = copy(p)
   c       = coeffs(p_temp)  # Dictionary of coefficient matrices of p
   num_row = size(p,1)      # Number of rows of p
-  U       = PolyMatrix(Matrix{Float64}(undef,num_row,num_row), Val{W})
+  U       = PolyMatrix(Matrix{Float64}(I,num_row,num_row), Val{W})
 
   indN    = zeros(Int,num_row)  # Collection of non-zero entries of n
   while true
@@ -640,8 +647,7 @@ function rowred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
     end
 
     # Unimodular matrix Utemp
-    Utemp = SortedDict(0 => Matrix{Float64}(undef,num_row,num_row))
-    #insert!(Utemp, 0, )
+    Utemp = SortedDict(0 => Matrix{Float64}(I,num_row,num_row))
     for i = 1:max_temp-minimum(k[indN[1:num_nz]])
       insert!(Utemp, i, zeros(T,num_row,num_row))
     end
@@ -655,7 +661,14 @@ function rowred(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
 
       # Update coefficient matrices
       for i = 0:k[row]
-        c[max_temp-k[row]+i][Nmax,:] += n[row] / n[Nmax] * c[i][row,:]
+        key = max_temp-k[row]+i
+        if !haskey(c,key)
+          insert!(c, key, zeros(T,size(p)...))
+        end
+        if haskey(c,i) # if c does not have the the key i the update below is zero
+          v = c[key]
+          v[Nmax,:] += n[row] / n[Nmax] * c[i][row,:]
+        end
       end
 
       # Update Utemp
