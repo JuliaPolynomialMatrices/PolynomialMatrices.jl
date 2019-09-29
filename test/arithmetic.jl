@@ -67,14 +67,14 @@ v2  = ones(4)
 @test pm1*pm2 ≈ PolyMatrix(m*(m+fill(1,2,2)))
 @test_throws DimensionMismatch pm3*pm1
 @test_throws ArgumentError pm1*pm4
-#@inferred pm1*pm1
-#@inferred pm2*pm1
+@inferred pm1*pm1
+@inferred pm2*pm1
 
 @test pm1*a1 ≈ PolyMatrix(m*a1)
 @test a1*pm1 ≈ PolyMatrix(a1*m)
 @test_throws DimensionMismatch a2*pm1
-#@inferred pm1*a1
-#@inferred a1+pm1
+@inferred pm1*a1
+@inferred a1+pm1
 
 # fft multiplication
 n = 2
@@ -98,9 +98,9 @@ pf  = Poly(randn(d), :s)
 @test (pm1/(2n1))[1] ≈ m[1]/2
 
 # inverse
-#det2, adj2 = inv(pm2) TODO
-#t2 = adj2*pm2
-#@test norm(t2[2,1])/norm(t2[1,1]) < Base.rtoldefault(Float64) TODO
+det2, adj2 = inv(pm2)
+t2 = adj2*pm2
+@test norm(t2[2,1])/norm(t2[1,1]) < Base.rtoldefault(Float64)
 
 # determinant
 @test typeof(det(pm1)) == Poly{Int}
