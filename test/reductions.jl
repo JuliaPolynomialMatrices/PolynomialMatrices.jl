@@ -38,16 +38,16 @@ R₀  = PolyMatrix([one(s) s+1; zero(s) s^2])
 p₁  = PolyMatrix([s^2 zero(s); zero(s) s^2])
 p₂  = PolyMatrix([one(s) s+1])
 
-#R, V₁, V₂ = gcrd(p₁, p₂) #TODO
+R, V₁, V₂ = gcrd(p₁, p₂)
 
-#@test hermite(R)[1] ≈ hermite(R₀)[1] TODO
-#@test V₁*R ≈ p₁
-#@test V₂*R ≈ p₂
+@test hermite(R)[1] ≈ hermite(R₀)[1]
+@test V₁*R ≈ p₁
+@test V₂*R ≈ p₂
 
-#L, V₁, V₂ = gcld(copy(transpose(p₁)),copy(transpose(p₂))) TODO
-#@test hermite(L)[1] ≈ hermite(copy(transpose(R₀)))[1]
-#@test L*V₁ ≈ copy(transpose(p₁))
-#@test L*V₂ ≈ copy(transpose(p₂))
+L, V₁, V₂ = gcld(copy(transpose(p₁)),copy(transpose(p₂)))
+@test hermite(L)[1] ≈ hermite(copy(transpose(R₀)))[1]
+@test L*V₁ ≈ copy(transpose(p₁))
+@test L*V₂ ≈ copy(transpose(p₂))
 
 # colred
 s = variable("s")
@@ -118,45 +118,45 @@ lmfd = hcat(-Nₗ, Dₗ)
 # verify that example is correct.
 @test norm(lmfd*rmfd) ≈ 0
 
-#L,U = ltriang(lmfd)
+L,U = ltriang(lmfd)
 
-#N = U[3:4,3:4]
-#D = U[1:2,3:4]
+N = U[3:4,3:4]
+D = U[1:2,3:4]
 
 # compare hermite form
-#Dₕ,U = hermite(D)
-#Nₕ = N*U
+Dₕ,U = hermite(D)
+Nₕ = N*U
 
 D₀,U = hermite(Dᵣ)
 N₀ = Nᵣ*U
 
-#@test isapprox(Dₕ,D₀)
-#@test isapprox(Nₕ,N₀)
+@test isapprox(Dₕ,D₀)
+@test isapprox(Nₕ,N₀)
 
-#@test norm(lmfd*vcat(Dₕ,Nₕ)) < 1e-12
+@test norm(lmfd*vcat(Dₕ,Nₕ)) < 1e-12
 
 rmfd2 = vcat(-Dᵣ,Nᵣ)
-#R,U = rtriang(rmfd2,false)
+R,U = rtriang(rmfd2,false)
 
-#N = U[3:4,1:2]
-#D = U[3:4,3:4]
-#@test isapprox(N*Dᵣ,D*Nᵣ)
+N = U[3:4,1:2]
+D = U[3:4,3:4]
+@test isapprox(N*Dᵣ,D*Nᵣ)
 
 # try to get back rfd from obtained lfd
-#lmfd2 = hcat(-N,D)
+lmfd2 = hcat(-N,D)
 
-#@test norm(lmfd2*rmfd) < 1e-14
-#L,U = ltriang(lmfd2)
+@test norm(lmfd2*rmfd) < 1e-14
+L,U = ltriang(lmfd2)
 
-#N = U[3:4,3:4]
-#D = U[1:2,3:4]
+N = U[3:4,3:4]
+D = U[1:2,3:4]
 
 # compare hermite form
-#Dₕ,U = hermite(D)
-#Nₕ = N*U
+Dₕ,U = hermite(D)
+Nₕ = N*U
 
 D₀,U = hermite(Dᵣ)
 N₀ = Nᵣ*U
 
-#@test isapprox(Dₕ,D₀)
-#@test isapprox(Nₕ,N₀)
+@test isapprox(Dₕ,D₀)
+@test isapprox(Nₕ,N₀)

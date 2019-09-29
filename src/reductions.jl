@@ -37,7 +37,7 @@ function gcrd(p₁::PolyMatrix{T1,M1,Val{W},N},
   detU, adjU = inv(U)
   V     = adjU/detU(0)
   V₁    = V[1:n₁,1:m₁]
-  V₂    = V[n₁+(1:n₂),1:m₂]
+  V₂    = V[(1:n₂).+n₁,1:m₂]
   return R[1:m₁,1:m₁], V₁, V₂
 end
 
@@ -80,7 +80,7 @@ function gcld(p₁::PolyMatrix{T1,M1,Val{W},N},
   detU, adjU = inv(U)
   V     = adjU/detU(0)
   V₁    = V[1:n₁,1:m₁]
-  V₂    = V[1:n₁,m₁+(1:m₂)]
+  V₂    = V[1:n₁,(1:m₂).+m₁]
   return L[1:n₁,1:n₁], V₁, V₂
 end
 
@@ -171,7 +171,7 @@ julia> L
 function ltriang(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1) where {T1,M,W,N}
   n,m = size(p)
   if n < m || rank(p) < m
-    pₑ = vcat(p, PolyMatrix(Matrix{Float64}(undef,m,m), (m,m), Val{W}))
+    pₑ = vcat(p, PolyMatrix(Matrix{T1}(I,m,m), (m,m), Val{W}))
   else
     pₑ = p
   end
