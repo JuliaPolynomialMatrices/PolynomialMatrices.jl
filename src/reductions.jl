@@ -247,10 +247,9 @@ function _ltriang(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=
       Rd[n*(d+1)-i*(d+1)-k-dᵤ+j, j*m .+ (1:m)] = v[n-i,:]
     end
   end
-  # should be changed when support for 0.4 drops (lq not in 0.4)
-  q,L = qr(transpose(Rd))
-  L   = L'
-  U   = q'
+  S = lq(Rd)
+  L = S.L
+  U = S.Q
 
   triangularshape = false
   j = 1

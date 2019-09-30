@@ -1,7 +1,7 @@
 name = "PolynomialMatrices"
 uuid = "196f2941-2d58-45ba-9f13-43a2532b2fa8"
 authors = ["Niklas Everitt <neveritt@kth.se>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
