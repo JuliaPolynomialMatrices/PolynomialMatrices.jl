@@ -1,5 +1,5 @@
 name = "PolynomialMatrices"
-uuid = "196f2941-2d58-45ba-9f13-43a2532b2fa8"
+uuid = "68ae48f1-ae9d-5916-b516-bab924cb4d98"
 authors = ["Niklas Everitt <neveritt@kth.se>"]
 version = "0.2.0"
 
@@ -11,6 +11,12 @@ FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Polynomials = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+
+[compat]
+Compat = "≥ 0.10.0"
+DataStructures = "≥ 0.5.1"
+Polynomials = "≥ 0.1.2"
+julia = "≥ 0.4.0"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
