@@ -1,19 +1,9 @@
 # PolynomialMatrices
 
-[![Unix][unix-img]][unix-link]
-[![Windows][win-img]][win-link]
-[![Coveralls][ca-img]][ca-link]
-[![Codecov][cc-img]][cc-link]
-
-[unix-img]: https://img.shields.io/travis/neveritt/PolynomialMatrices.jl/master.svg?label=unix
-[unix-link]: https://travis-ci.org/neveritt/PolynomialMatrices.jl
-[win-img]: https://img.shields.io/appveyor/ci/neveritt/PolynomialMatrices-jl/master.svg?label=windows
-[win-link]: https://ci.appveyor.com/project/neveritt/PolynomialMatrices-jl/branch/master
-[ca-img]: https://img.shields.io/coveralls/neveritt/PolynomialMatrices.jl/master.svg?label=coveralls
-[ca-link]: https://coveralls.io/github/neveritt/PolynomialMatrices.jl?branch=master
-[cc-img]: https://img.shields.io/codecov/c/github/neveritt/PolynomialMatrices.jl/master.svg?label=codecov
-[cc-link]: https://codecov.io/gh/neveritt/PolynomialMatrices.jl?branch=master
-
+[![Build Status](https://travis-ci.org/JuliaPolynomialMatrices/PolynomialMatrices.jl.svg?branch=master)](https://travis-ci.org/JuliaPolynomialMatrices/PolynomialMatrices.jl)
+[![Build status](https://ci.appveyor.com/api/projects/status/2oqqsy4gqckilsbw/branch/master?svg=true)](https://ci.appveyor.com/project/hurak/polynomialmatrices-jl/branch/master)
+[![Coverage Status](https://coveralls.io/repos/github/JuliaPolynomialMatrices/PolynomialMatrices.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaPolynomialMatrices/PolynomialMatrices.jl?branch=master)
+[![codecov](https://codecov.io/gh/JuliaPolynomialMatrices/PolynomialMatrices.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaPolynomialMatrices/PolynomialMatrices.jl)
 
 The `PolynomialMatrices` Julia package provides a support for calculations with univariate [polynomial matrices](https://en.wikipedia.org/wiki/Polynomial_matrix), that is, matrices whose entries are univariate polynomials, such as
 
