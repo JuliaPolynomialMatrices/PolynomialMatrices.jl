@@ -1,7 +1,6 @@
 # PolynomialMatrices
 
 [![Build Status](https://travis-ci.org/JuliaPolynomialMatrices/PolynomialMatrices.jl.svg?branch=master)](https://travis-ci.org/JuliaPolynomialMatrices/PolynomialMatrices.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/2oqqsy4gqckilsbw/branch/master?svg=true)](https://ci.appveyor.com/project/hurak/polynomialmatrices-jl/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/JuliaPolynomialMatrices/PolynomialMatrices.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaPolynomialMatrices/PolynomialMatrices.jl?branch=master)
 [![codecov](https://codecov.io/gh/JuliaPolynomialMatrices/PolynomialMatrices.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaPolynomialMatrices/PolynomialMatrices.jl)
 
