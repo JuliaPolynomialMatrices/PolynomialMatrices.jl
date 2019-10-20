@@ -112,9 +112,16 @@ julia> H
         Triangularization" IEEE Transactions on Automatic Control, vol. 44,
         no. 3, Mar. 1999.
 """
-function hermite(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1) where {T1,M,W,N}
+function hermite(p::PolyMatrix{T1,M,Val{W},N}, iterative::Bool=true, dᵤ::Int=-1,
+  ϵ=-one(T1)) where {T1,M,W,N}
   L,U,d = _ltriang(p, iterative, dᵤ)
   n,m   = size(p)
+
+  # truncate elements close to zero
+  ϵ = ϵ < zero(ϵ) ? Base.rtoldefault(real(T1))*length(p)*d : ϵ
+  for i in eachindex(L)
+    L[i]  = abs(L[i]) < ϵ ? zero(L[i]) : L[i]
+  end
 
   # scale diagonal elements first
   Σ = [findfirst(x -> x!=0, L[:,k]) for k in 1:m]
