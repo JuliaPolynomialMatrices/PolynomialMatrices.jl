@@ -6,7 +6,7 @@ iterate(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}                    = (p[1],
 iterate(p::PolyMatrix{T,M,Val{W},N}, i::Int) where {T,M,W,N}        = i < lastindex(p) ? (p[i+1], i+1) : nothing
 IteratorSize(p::PolyMatrix{T,M,Val{W},N}, i::Int) where {T,M,W,N}   = HasShape{N}()
 IteratorEltype(p::PolyMatrix{T,M,Val{W},N}, i::Int) where {T,M,W,N} = HasEltype()
-eltype(::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}                      = Poly{T}
+eltype(::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}                      = Polynomial{T}
 vartype(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}                    = W
 mattype(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}                    = M
 @compat Base.IndexStyle(::Type{<:PolyMatrix})                           = IndexLinear()
@@ -30,7 +30,7 @@ function similar(p::PolyMatrix{T,M,Val{W},N}, ::Type{S}=T,
   r = PolyMatrix(SortedDict(0=>vr), size(vr), Val{W})
 end
 
-function similar(p::PolyMatrix{T,M,Val{W},N}, ::Type{Poly{S}},
+function similar(p::PolyMatrix{T,M,Val{W},N}, ::Type{Polynomial{S}},
   dims::NTuple{N2,Int}=size(p)) where {T,M,W,N,S,N2}
   _,v1 = coeffs(p) |> first
   vr = zero(similar(v1, S, dims))
@@ -74,9 +74,9 @@ end
 
 """
       variable(p::PolyMatrix)
-  return variable of `p` as a `Poly` object.
+  return variable of `p` as a `Polynomial` object.
 """
-variable(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N} = variable(T, @compat Symbol(W))
+variable(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N} = variable(Polynomial{T}, @compat Symbol(W))
 
 # Copying
 function copy(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
@@ -98,7 +98,7 @@ function getindex(p::PolyMatrix{T,M,Val{W},N}, i::Int) where {T,M,W,N}
   for (k,v) in coeffs(p)
     vr[k+1] = v[i]
   end
-  r = Poly(vr, W)
+  r = Polynomial(vr, W)
 end
 
 function getindex(p::PolyMatrix{T,M,Val{W},N}, i::Int, j::Int) where {T,M,W,N}
@@ -106,7 +106,7 @@ function getindex(p::PolyMatrix{T,M,Val{W},N}, i::Int, j::Int) where {T,M,W,N}
   for (k,v) in coeffs(p)
     vr[k+1] = v[i,j]
   end
-  r = Poly(vr, W)
+  r = Polynomial(vr, W)
 end
 
 function getindex(p::PolyMatrix{T,M,Val{W},N}, I::Vararg{Int, N2}) where {T,M,W,N,N2}
@@ -114,7 +114,7 @@ function getindex(p::PolyMatrix{T,M,Val{W},N}, I::Vararg{Int, N2}) where {T,M,W,
   for (k,v) in coeffs(p)
     vr[k+1] = v[I]
   end
-  r = Poly(vr, W)
+  r = Polynomial(vr, W)
 end
 
 function getindex(p::PolyMatrix{T,M,Val{W},N}, I...) where {T,M,W,N}
@@ -129,7 +129,7 @@ function getindex(p::PolyMatrix{T,M,Val{W},N}, I...) where {T,M,W,N}
 end
 
 # setindex!
-function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::Poly{U}, i::Int) where {T,M,W,N,U}
+function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::Polynomial{U}, i::Int) where {T,M,W,N,U}
   @compat @boundscheck checkbounds(Pm, i)
   c = coeffs(p)
   Pmc = coeffs(Pm)
@@ -154,7 +154,7 @@ function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::Poly{U}, i::Int) where {T,M,
   end
 end
 
-function setindex!(Pm::PolyMatrix{T,M,Val{W},2}, p::Poly{U},
+function setindex!(Pm::PolyMatrix{T,M,Val{W},2}, p::Polynomial{U},
     i::Int, j::Int) where {T,M,W,U}
   @compat @boundscheck checkbounds(Pm, i, j)
   c = coeffs(p)
@@ -180,7 +180,7 @@ function setindex!(Pm::PolyMatrix{T,M,Val{W},2}, p::Poly{U},
   end
 end
 
-function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::Poly{U},
+function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::Polynomial{U},
     I...) where {T,M,W,N,U}
   @compat @boundscheck checkbounds(Pm, I...)
   c = coeffs(p)
@@ -206,7 +206,7 @@ function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::Poly{U},
   end
 end
 
-function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::AbstractArray{Poly{U}},
+function setindex!(Pm::PolyMatrix{T,M,Val{W},N}, p::AbstractArray{Polynomial{U}},
     I...) where {T,M,W,N,U}
   @compat @boundscheck checkbounds(Pm, I...)
   c   = coeffs(Pm)
@@ -419,12 +419,12 @@ end
 isapprox(n::AbstractArray{T2,N}, p₁::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,W,N,T2} = (p₁ ≈ n)
 
 function isapprox(p₁::PolyMatrix{T1,M1,Val{W},N},
-  n::AbstractArray{Poly{T2},N}; rtol::Real=Base.rtoldefault(T1,T2,0),
+  n::AbstractArray{Polynomial{T2},N}; rtol::Real=Base.rtoldefault(T1,T2,0),
   atol::Real=0, norm::Function=norm) where {T1,M1,W,N,T2}
   return isapprox(p₁, PolyMatrix(n); rtol=rtol, atol=atol, norm=norm)
 end
 
-function isapprox(n::AbstractArray{Poly{T2},N},
+function isapprox(n::AbstractArray{Polynomial{T2},N},
   p₁::PolyMatrix{T1,M1,Val{W},N}; rtol::Real=Base.rtoldefault(T1,T2,0),
   atol::Real=0, norm::Function=norm) where {T1,M1,W,N,T2}
   return isapprox(PolyMatrix(n), p₁; rtol=rtol, atol=atol, norm=norm)

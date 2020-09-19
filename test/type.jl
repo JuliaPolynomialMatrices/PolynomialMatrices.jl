@@ -1,7 +1,7 @@
 # test constructors
-p1  = Poly([1])
-p2  = Poly([2,1,3])
-p3  = Poly([2,3,4])
+p1  = Polynomial([1])
+p2  = Polynomial([2,1,3])
+p3  = Polynomial([2,3,4])
 m   = [p1 p2; p2 p1]
 pm1 = PolyMatrix(m, Val{:x})
 @inferred PolyMatrix(m, Val{:x})

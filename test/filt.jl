@@ -1,7 +1,7 @@
 # test filtering
 ny  = 2
-p1  = Poly([2,1,3.], :s)
-p2  = Poly([2,1,3.1], :s)
+p1  = Polynomial([2,1,3.], :s)
+p2  = Polynomial([2,1,3.1], :s)
 pm1 = PolyMatrix([p1 p2; p2 p1])
 pm2 = PolyMatrix([p1 p2; p2 p2])
 pm3 = PolyMatrix(Matrix{Float64}(I,2,2), :s)
