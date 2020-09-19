@@ -1,7 +1,7 @@
 # setup
-p1  = Poly([1,2,3],:s)
-p2  = Poly([2,1,3,4],:s)
-p3  = Poly([2,3,4,5,7],:s)
+p1  = Polynomial([1,2,3],:s)
+p2  = Polynomial([2,1,3,4],:s)
+p3  = Polynomial([2,3,4,5,7],:s)
 m   = [p1 p2; p3 p1]
 pm1 = PolyMatrix(m)
 pm2 = PolyMatrix(m .+ 1.0)
@@ -80,9 +80,9 @@ v2  = ones(4)
 n = 2
 d = 25
 pmf = PolyMatrix(randn(n,n,d), (n,n,d), :s)
-pf  = Poly(randn(d), :s)
-@test eltype(pmf*pmf) == Poly{Float64}
-@test eltype(pmf*pf)  == Poly{Float64}
+pf  = Polynomial(randn(d), :s)
+@test eltype(pmf*pmf) == Polynomial{Float64}
+@test eltype(pmf*pf)  == Polynomial{Float64}
 @test pf*pmf  == pmf*pf
 
 @test pm1*v1 ≈ PolyMatrix(m*v1)
@@ -103,4 +103,4 @@ pf  = Poly(randn(d), :s)
 #@test norm(t2[2,1])/norm(t2[1,1]) < Base.rtoldefault(Float64) TODO
 
 # determinant
-@test typeof(det(pm1)) == Poly{Int}
+@test typeof(det(pm1)) == Polynomial{Int}

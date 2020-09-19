@@ -7,7 +7,7 @@
 #
 # NOTE: The constructors should make sure that the highest coefficient matrix is nonzero
 # NOTE: For dense polynomial matrices, defining `coeffs` as a 3-D array could be much more efficient
-struct PolyMatrix{T,M,W,N} <: AbstractArray{Polynomials.Poly{T},N}
+struct PolyMatrix{T,M,W,N} <: AbstractArray{Polynomials.Polynomial{T},N}
   coeffs::SortedDict{Int,M,ForwardOrdering}
   dims::NTuple{N,Int}
 
@@ -86,11 +86,11 @@ end
 
 function PolyMatrix(PM::M1) where M1<:AbstractArray
   var = count(!iszero,PM) > 0 ? PM[findfirst(x -> x != zero(x), PM)].var :
-                         Poly(T[]).var       # default to Polys default variable
+                         Polynomial(T[]).var       # default to Polynomials default variable
   PolyMatrix(PM, Val{@compat Symbol(var)})
 end
 
-function PolyMatrix(PM::AbstractArray{Poly{T},N}, ::Type{Val{W}}) where {T,N,W}
+function PolyMatrix(PM::AbstractArray{Polynomial{T},N}, ::Type{Val{W}}) where {T,N,W}
   N <= 2 || error("higher order arrays not supported at this point")
   M = typeof(similar(PM, T)) # NOTE: Is there a more memory-efficient way to obtain M?
   c = SortedDict(Dict{Int,M}())

@@ -31,7 +31,7 @@ function _add(p1::PolyMatrix{T1,M1,Val{W},N},
   return PolyMatrix(cr, size(vr), Val{W})
 end
 
-function _add(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:Poly}
+function _add(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:Polynomial}
   c1    = coeffs(p1)
   c2    = coeffs(p2)
   _,v1  = first(c1) # for polynomials first(c1) returns index of first element
@@ -126,9 +126,9 @@ function _mulconv(p1::PolyMatrix{T1,M1,Val{W},2},
   return PolyMatrix(cr, size(vr), Val{W})
 end
 
-_mulconv(p1::T2, p2::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,W,N,T2<:Poly} = _mulconv(p2,p1)
+_mulconv(p1::T2, p2::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,W,N,T2<:Polynomial} = _mulconv(p2,p1)
 
-function _mulconv(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:Poly}
+function _mulconv(p1::PolyMatrix{T1,M1,Val{W},N}, p2::T2) where {T1,M1,W,N,T2<:Polynomial}
   # figure out return type
   c1    = coeffs(p1)
   c2    = coeffs(p2)
@@ -187,9 +187,9 @@ function _mulfft(p1::PolyMatrix{T1,M1,Val{W},2},
   return PolyMatrix(ar, Val{W})
 end
 
-_mulfft(p1::Poly{T2}, p2::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,W,N,T2} = _mulfft(p2,p1)
+_mulfft(p1::Polynomial{T2}, p2::PolyMatrix{T1,M1,Val{W},N}) where {T1,M1,W,N,T2} = _mulfft(p2,p1)
 
-function _mulfft(p1::PolyMatrix{T1,M1,Val{W},N}, p2::Poly{T2}) where {T1,M1,W,N,T2}
+function _mulfft(p1::PolyMatrix{T1,M1,Val{W},N}, p2::Polynomial{T2}) where {T1,M1,W,N,T2}
   T     = promote_type(T1, T2)
   c1    = coeffs(p1)
   c2    = coeffs(p2)
@@ -223,7 +223,7 @@ function _fftmatrix(p::PolyMatrix{T1,M1,Val{W1},N}, ::Type{T}, dn::Integer) wher
   A
 end
 
-function _fftmatrix(p::Poly{T1}, ::Type{T}, dn::Integer) where {T1,T}
+function _fftmatrix(p::Polynomial{T1}, ::Type{T}, dn::Integer) where {T1,T}
   A = zeros(T,dn)
   c = coeffs(p)
   for i in eachindex(c)
@@ -249,14 +249,14 @@ end
 *(p1::PolyMatrix{T,M1,Val{W},N}, p2::AbstractArray{S,1}) where {T,M1,W,N,S<:Number} = p1*PolyMatrix(p2, size(p2), Val{W})
 
 ## Basic operations between polynomial matrices and polynomials
-+(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Poly} = _add(p1, p2)
-+(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:Poly} = _add(p2, p1)
++(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Polynomial} = _add(p1, p2)
++(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:Polynomial} = _add(p2, p1)
 
--(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Poly} = _add(p1, -p2)
--(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:Poly} = _add(-p2, p1)
+-(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Polynomial} = _add(p1, -p2)
+-(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:Polynomial} = _add(-p2, p1)
 
-*(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Poly} = _mul(p1, p2)
-*(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:Poly} = _mul(p2, p1)
+*(p1::PolyMatrix{T,M1,Val{W},N}, p2::M2) where {T,M1,W,N,M2<:Polynomial} = _mul(p1, p2)
+*(p1::M2, p2::PolyMatrix{T,M1,Val{W},N}) where {T,M1,W,N,M2<:Polynomial} = _mul(p2, p1)
 
 ## Basic operations between polynomial matrices and Numbers
 function _add(p1::PolyMatrix{T1,M1,Val{W},N}, v2::T2) where {T1,M1,W,N,T2<:Number}
@@ -354,7 +354,7 @@ function det(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
   a = [det(B[:,:,k]) for k = 1:dn]
   # interpolate using fft
   ar = _truncate(T, ifft(a))
-  return Poly(ar, W)
+  return Polynomial(ar, W)
 end
 
 function _truncate(::Type{T}, a::AbstractArray{T2}) where {T<:Real,T2}
@@ -385,7 +385,7 @@ function inv(p::PolyMatrix{T,M,Val{W},N}) where {T,M,W,N}
   B = fft(A,3)
   a = [det(B[:,:,k]) for k = 1:dn]
   ar = _truncate(T,ifft(a))
-  rdet = Poly(ar, W)
+  rdet = Polynomial(ar, W)
 
   v2  = zero(B)
   for k in 1:dn
