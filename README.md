@@ -1,8 +1,7 @@
 # PolynomialMatrices
 
-[![Build Status](https://travis-ci.org/JuliaPolynomialMatrices/PolynomialMatrices.jl.svg?branch=master)](https://travis-ci.org/JuliaPolynomialMatrices/PolynomialMatrices.jl)
-[![Coverage Status](https://coveralls.io/repos/github/JuliaPolynomialMatrices/PolynomialMatrices.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaPolynomialMatrices/PolynomialMatrices.jl?branch=master)
-[![codecov](https://codecov.io/gh/JuliaPolynomialMatrices/PolynomialMatrices.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaPolynomialMatrices/PolynomialMatrices.jl)
+[![Build Status](https://github.com/JuliaPolynomialMatrices/PolynomialMatrices.jl/workflows/CI/badge.svg)](https://github.com/JuliaPolynomialMatrices/PolynomialMatrices.jl/actions)
+[![Codecov](https://codecov.io/gh/JuliaPolynomialMatrices/PolynomialMatrices.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaPolynomialMatrices/PolynomialMatrices.jl)
 
 The `PolynomialMatrices` Julia package provides a support for calculations with univariate [polynomial matrices](https://en.wikipedia.org/wiki/Polynomial_matrix), that is, matrices whose entries are univariate polynomials, such as
 
