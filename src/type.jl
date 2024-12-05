@@ -85,8 +85,8 @@ function PolyMatrix(d::Dict{Int,M}, var::Type{Val{W}}) where {M<:AbstractArray,W
 end
 
 function PolyMatrix(PM::M1) where M1<:AbstractArray
-  var = count(!iszero,PM) > 0 ? PM[findfirst(x -> x != zero(x), PM)].var :
-                         Polynomial(T[]).var       # default to Polynomials default variable
+  var = count(!iszero,PM) > 0 ? variable(PM[findfirst(x -> x != zero(x), PM)]) :
+                         variable(Polynomial(T[]))       # default to Polynomials default variable
   PolyMatrix(PM, Val{@compat Symbol(var)})
 end
 
