@@ -1,6 +1,6 @@
 name = "PolynomialMatrices"
 uuid = "68ae48f1-ae9d-5916-b516-bab924cb4d98"
-authors = ["Niklas Everitt <neveritt@kth.se>", "Konrad Scheffler"]
+authors = ["Niklas Everitt <neveritt@kth.se>"]
 version = "0.1.2"
 
 [deps]
